@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import java.util.List;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,6 +22,8 @@ import javafx.scene.control.ListCell;
 import database.Database;
 import entityClasses.User;
 import entityClasses.Post;
+import javafx.scene.control.ComboBox;
+import java.util.ArrayList;
 
 //ViewPostDisplay Class
 public class ViewPostDisplay{
@@ -34,30 +37,30 @@ public class ViewPostDisplay{
 		protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
 		protected static Line line_Separator2 = new Line(20, 150, width-20, 150);
 		
-		//Gui Area 1
+		//GUI Area 1
 		protected static Label label_PageTitle = new Label();
 		protected static Label label_UserDetails = new Label();
 		
 
-		// GUI ARea 1: Invites user to create a post hw2
+		// GUI Area 1: Invites user to create a post hw2
 		protected static Label label_CreatePost = new Label("Create Post: ");
 		protected static TextField text_PostContent = new TextField();
 		protected static Button button_Post = new Button("Post");
 		
 		
-		//Gui area 2: Shows all posts within database from general hw2
-		//ObservableList<String> postDisplay = FXCollections.observableArrayList();
-		// taking this out poss temporarily ListView<String> displayPosts = new ListView<>();
+		//GUI area 2: Shows all posts within database from general hw2
+		
 		protected static ObservableList<Post> postDisplay = FXCollections.observableArrayList();
-		ListView<Post> displayPosts = new ListView<>();
+		protected static ListView<Post> displayPosts = new ListView<>();
 		
 		protected static Alert alertNotImplemented = new Alert(AlertType.INFORMATION);
 		protected static Alert alertPosted = new Alert(AlertType.INFORMATION);
 		
-		//HW2 Bren
+		// Bren
 		protected static ComboBox<String> combobox_SelectPostThread = new ComboBox<>();
 		protected static ComboBox<String> combobox_FilterThread = new ComboBox<>();
 		protected static Label label_FilterThread = new Label("Filter by Thread:");
+		protected static List<String> filterOptions = new ArrayList<>();
 		
 
 		
@@ -80,8 +83,8 @@ public class ViewPostDisplay{
 		private static Database theDatabase = applicationMain.FoundationsMain.database;
 
 		protected static Stage theStage;			// The Stage that JavaFX has established for us	
-		protected static Pane theRootPane;			// The Pane that holds all the GUI widgets
-		protected static User theUser;				// The current logged in User
+		protected static Pane theRootPane;			// The Pane that holds all the GUI wis
+		protected static User theUser;				// The current loeged in User
 		protected static int theRole;
 
 		private static Scene theViewPostDisplayScene;	// The shared Scene each invocation populates
@@ -150,9 +153,23 @@ public class ViewPostDisplay{
 			setupLabelUI(label_CreatePost, "Arial", 20, 175, Pos.BASELINE_LEFT, 20, 110);
 			setupTextUI(text_PostContent, "Arial", 16, 350, Pos.BASELINE_LEFT,
 			140, 105, true);
-			setupButtonUI(button_Post,  "Dialog", 18, 170, Pos.CENTER, 525, 103);
+			setupButtonUI(button_Post,  "Dialog", 18, 100, Pos.CENTER,680, 103);
 			button_Post.setOnAction((_) -> {ControllerPostDisplay.performNewPost(); postDisplay.setAll(theDatabase.displayPostHelper());});
 			
+			
+			//HW2 brenn
+			setupComboBoxUI(combobox_SelectPostThread, "Arial", 14, 130, 500, 108);
+			combobox_SelectPostThread.getItems().setAll(theDatabase.getAllThreadTypes());
+			combobox_SelectPostThread.setValue("General");
+			combobox_SelectPostThread.setMaxWidth(170);
+
+			setupLabelUI(label_FilterThread, "Arial", 16, 140, Pos.BASELINE_LEFT, 20, 165);
+			setupComboBoxUI(combobox_FilterThread, "Arial", 14, 130, 160, 163);
+			List<String> filterOptions = theDatabase.getAllThreadTypes();
+			filterOptions.add(0, "All");
+			combobox_FilterThread.getItems().setAll(filterOptions);
+			combobox_FilterThread.setValue("All");
+			combobox_FilterThread.setOnAction((_) -> { ControllerPostDisplay.performFilter(); });
 			//GUI Area 3 hw2
 		
 			postDisplay = theDatabase.displayPostHelper();
@@ -206,6 +223,7 @@ public class ViewPostDisplay{
 			// Place all of the widget items into the Root Pane's list of children
 	         theRootPane.getChildren().addAll(
 				label_PageTitle, label_UserDetails, line_Separator1,label_CreatePost,text_PostContent,button_Post,
+				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,
 		        line_Separator2,displayPosts, line_Separator4, button_Home, button_Quit);
 	}
 		
@@ -265,4 +283,15 @@ public class ViewPostDisplay{
 			t.setLayoutY(y);		
 			t.setEditable(e);
 		}	
+		
+		//HW2 brenn combobox helper
+		private static void setupComboBoxUI(ComboBox<String> c, String ff, double f,
+		        double w, double x, double y) {
+		    c.setStyle("-fx-font: " + f + " " + ff + ";");
+		    c.setMinWidth(w);
+		    c.setLayoutX(x);
+		    c.setLayoutY(y);
+		}
+		
+		
 }
