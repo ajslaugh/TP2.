@@ -169,10 +169,12 @@ public class ViewRole1Home {
 		
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((_) -> {ControllerRole1Home.performUpdate(); });
+
+		//HW2 brenn
+		Label label_PostsSection = new Label("Discussion Board");
+		setupLabelUI(label_PostsSection, "Arial", 22, width, Pos.CENTER, 0, 110);
 		
-		
-		
-		setupButtonUI(button_ViewPosts, "Dialog", 18, 150, Pos.CENTER, 500, 240);
+		setupButtonUI(button_ViewPosts, "Dialog", 18, 250, Pos.CENTER, 275, 250);
         button_ViewPosts.setOnAction((_) -> {ControllerRole1Home.viewPosts(); });
 		
 		
@@ -188,6 +190,7 @@ public class ViewRole1Home {
 		// Place all of the widget items into the Root Pane's list of children
          theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1, button_ViewPosts,
+			label_PostsSection,
 	        line_Separator4, button_Logout, button_Quit);
 }
 	
