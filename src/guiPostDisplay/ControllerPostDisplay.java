@@ -5,12 +5,12 @@ import java.util.Optional;
 import entityClasses.Reply;
 import entityClasses.User;
 import database.Database;
-
 import entityClasses.Post;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
-
+import javafx.collections.ObservableList;
 import java.util.List;
 import javafx.scene.control.ButtonType;
 
@@ -76,6 +76,10 @@ protected static void setRole() {
 }
 
 
+
+
+
+
 //go back to homepage
 protected static void backToHomePage(Stage theStage, User theUser) {
 	// Get the roles the user selected during login
@@ -105,6 +109,8 @@ protected static void performNewPost() {
 	setAuthor();
 	setContent();
 	setRole();
+	//Brenn
+	thread = ViewPostDisplay.combobox_SelectPostThread.getValue();	
 	//input validation
 	if(content.isEmpty()) {
 		Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -172,6 +178,24 @@ protected static void performNewPost() {
 		
 	}
 	
+	// Brenn + Alex
+	//called when student uses the combobox
+	protected static void performFilter() {
+		ViewPostDisplay.postDisplay.setAll(getFilteredPosts());
+
+	}
+	
+	//HW2 Brenn adjust
+	protected static ObservableList<Post> getFilteredPosts() {
+		String selected = ViewPostDisplay.combobox_FilterThread.getValue();
+		if (selected == null || selected.equals("All")) {
+				return theDatabase.displayPostHelper();
+		}
+		else {
+			return theDatabase.getPostsByThread(selected);
+		}
+	}	
+	
 
 	//view replies
 	protected static void viewReplies(Post ogPost) {
@@ -179,7 +203,6 @@ protected static void performNewPost() {
 		ogPostNum = ogPost.getID();
 		
 		List<String[]> replies = theDatabase.getRepliesFromPost(ogPostNum);
-		Alert alert = new Alert(Alert.AlertType.NONE);
 		StringBuilder replyList = new StringBuilder();
 		if(replies.isEmpty()) {
 			replyList.append("There are currently no replies to this post");
@@ -188,7 +211,7 @@ protected static void performNewPost() {
 			for (String[] reply : replies) {
 				replyList.append(String.format("%s %s to %s thread: %s \n\n",
 				reply[0], reply[2], reply[3], reply[1]));}}
-	
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
 		alert.setTitle("Replies");
 		alert.setHeaderText("These are the replies to this post");
 		alert.setContentText(replyList.toString());
