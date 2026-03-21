@@ -181,18 +181,22 @@ public class ViewPostDisplay{
 			combobox_SelectPostThread.setValue("General");
 			combobox_SelectPostThread.setMaxWidth(170);
 
-			setupLabelUI(label_FilterThread, "Arial", 16, 140, Pos.BASELINE_LEFT, 20, 165);
+			setupLabelUI(label_FilterThread, "Arial", 16, 130, Pos.BASELINE_LEFT, 20, 165);
 			setupComboBoxUI(combobox_FilterThread, "Arial", 14, 130, 160, 163);
 			List<String> filterOptions = theDatabase.getAllThreadTypes();
 			filterOptions.add(0, "All");
+			combobox_FilterThread.setLayoutX(155);
+			combobox_FilterThread.setLayoutY(163);
+			combobox_FilterThread.setMinWidth(150);
 			combobox_FilterThread.getItems().setAll(filterOptions);
 			combobox_FilterThread.setValue("All");
 			combobox_FilterThread.setOnAction((_) -> { ControllerPostDisplay.performFilter(); });
+			
 			//GUI Area 3 hw2
 		
 			postDisplay = theDatabase.displayPostHelper();
 			displayPosts.setItems(postDisplay);
-			displayPosts.setPrefSize(500, 200);
+			displayPosts.setPrefSize(640, 280);
 			displayPosts.setLayoutX(20);
 			displayPosts.setLayoutY(200);
 			displayPosts.setCellFactory(_ -> new ListCell<Post>() {
