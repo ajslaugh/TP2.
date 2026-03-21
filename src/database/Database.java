@@ -1,3 +1,4 @@
+
 package database;
 
 import java.sql.*;
@@ -163,7 +164,7 @@ public class Database {
 		
 	    statement.execute(postTable);
 	    
-	//HW2 reply table 
+	//Alex reply table 
 	String replyTable="CREATE TABLE IF NOT EXISTS userReplies(" 
 			+ "id INT AUTO_INCREMENT PRIMARY KEY,"
 			+ "replyTo INT,"
@@ -174,15 +175,17 @@ public class Database {
 	
     statement.execute(replyTable);
 	
-	//HW2 thread table
+	// thread table
 	String threadTable = "CREATE TABLE IF NOT EXISTS threadTypes("
         + "id INT AUTO_INCREMENT PRIMARY KEY,"
         + "thread_name VARCHAR(255) UNIQUE)";
 		statement.execute(threadTable);
 
 	statement.execute("INSERT INTO threadTypes (thread_name) "
-        + "SELECT 'General' WHERE NOT EXISTS "
-        + "(SELECT 1 FROM threadTypes WHERE thread_name = 'General')");}
+        + "SELECT 'General' WHERE NOT EXISTS ("
+        + "SELECT 1 FROM threadTypes WHERE thread_name = 'General'"
+        +")"
+        );}
 
 /*******
  * <p> Method: isDatabaseEmpty </p>
@@ -234,7 +237,7 @@ public class Database {
 	 * @return the number of user post records in the database.
 	 * 
 	 */
-	//HW2 get number of posts
+	//Alex get number of posts
 	public int getNumberOfPosts() {
 		String query = "SELECT COUNT(*) AS count FROM userPosts";
 		try {
@@ -256,7 +259,7 @@ public class Database {
 	 * @return 
 	 * 
 	 */
-	//HW2 createpost
+	//Alex add Post
    public int addPost(Post post) throws SQLException{
 	   String addPost = "INSERT INTO userPosts (post, username, role, thread)"
 			   + "VALUES (?, ?, ?, ?)";
@@ -294,7 +297,7 @@ public class Database {
 	 * @return 
 	 * 
 	 */
-	   //Hw2 create reply
+	   //Alex create reply
 	   public void addReply(Reply reply) throws SQLException{
 		   String addReply = "INSERT INTO userReplies (replyTo, post, username, role, thread)"
 				   + "VALUES (?, ?, ?, ?, ?)";
@@ -448,22 +451,24 @@ public class Database {
 
 	 //HW2 Brenn
 		//get posts by thread
-		public ObservableList<String> getPostsByThread(String thread) {
-		    ObservableList<String> postDisplay = FXCollections.observableArrayList();
-		    String query = "SELECT post, username, role, thread FROM userPosts WHERE thread = ?";
+		public ObservableList<Post> getPostsByThread(String thread) {
+		    ObservableList<Post> postDisplay = FXCollections.observableArrayList();
+		    Post newPost;
+		    String query = "SELECT post, username, role, thread, number FROM userPosts WHERE thread = ?";
 		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 		        pstmt.setString(1, thread);
 		        ResultSet rs = pstmt.executeQuery();
-		        while (rs.next()) {
-		            postDisplay.add(String.format("%s %s to %s thread: %s",
-		                rs.getString("role"),
-		                rs.getString("username"),
-		                rs.getString("thread"),
-		                rs.getString("post")));
-		        }
-		    } catch (SQLException e) {
-		        e.printStackTrace();
-		    }
+		        while(rs.next()) {
+		        	if(rs.getString("thread") == thread) {
+		        		newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
+		        		newPost.setID(rs.getInt("number"));
+		        		postDisplay.add(newPost);
+		        	}
+		        }}
+				catch(SQLException e) {
+					e.printStackTrace();
+					return postDisplay;
+				}
 		    return postDisplay;
 		}
 	
@@ -521,7 +526,7 @@ public class Database {
 	 * @return isownPost boolean 
 	 * 
 	 */
-	//Hw2
+	//Alex is own post
 	public boolean isOwnPost(Post post) {
 		String author = post.getAuthor();
 		if(currentUsername.equals(author)) {
@@ -541,7 +546,7 @@ public class Database {
 	 * @return List<String[]> replies 
 	 * 
 	 */
-	//hw2
+	//Alex Get replylist
 	public List<String[]>getRepliesFromPost(int ogPost){
 		List<String[]> replies = new ArrayList<>();
 		String query = "SELECT replyTo, post, username, role, thread FROM userReplies";
@@ -575,19 +580,7 @@ public class Database {
 	 * @return ObservableList<String> postDisplay
 	 * 
 	 */
-	//hw2 temp unused
-	/* public ObservableList<String> displayPostsHelper() {
-		ObservableList<String> postDisplay = FXCollections.observableArrayList();
-		List<String[]> posts = getAllPosts();
-		
-	
-		for (String[] post : posts) {
-			postDisplay.add(String.format("%s %s %s to %s thread: %s", 
-			post[4], post[2], post[0], post[3], post[1]));}
-		
-		return postDisplay;
-	}  */
-	//add
+
 	public ObservableList<Post> displayPostHelper(){
 		ObservableList<Post> postDisplay = FXCollections.observableArrayList();
 		Post newPost;
