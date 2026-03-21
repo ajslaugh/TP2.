@@ -276,11 +276,21 @@ protected static void performNewPost() {
 		ViewPostDisplay.alertPosted.showAndWait();
 		
 		
-
-
-		
-		
 	}
+
+	//Brenn
+	//search post for keywords
+	protected static void performSearch() {
+	    String keyword = ViewPostDisplay.text_SearchKeyword.getText().trim();
+	    if (keyword.isEmpty()) {
+	        // If nothing typed, just show everything
+	        ViewPostDisplay.postDisplay.setAll(theDatabase.displayPostHelper());
+	        return;
+	    }
+	    ViewPostDisplay.postDisplay.setAll(theDatabase.searchPostsByKeyword(keyword));
+	}
+
+
 	
 	protected static void performQuit() {
 		System.exit(0);
