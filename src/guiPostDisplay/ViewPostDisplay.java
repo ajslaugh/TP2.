@@ -62,7 +62,12 @@ public class ViewPostDisplay{
 		protected static Label label_FilterThread = new Label("Filter by Thread:");
 		protected static List<String> filterOptions = new ArrayList<>();
 		
-
+		//HW2 Brenn 
+		//search keywords
+		protected static TextField text_SearchKeyword = new TextField();
+		protected static Button button_Search = new Button("Search");
+		protected static Button button_ClearSearch = new Button("Show All");
+		
 		
 		
 		// This is a separator and it is used to partition the GUI for various tasks
@@ -156,6 +161,19 @@ public class ViewPostDisplay{
 			setupButtonUI(button_Post,  "Dialog", 18, 100, Pos.CENTER,680, 103);
 			button_Post.setOnAction((_) -> {ControllerPostDisplay.performNewPost(); postDisplay.setAll(theDatabase.displayPostHelper());});
 			
+			//HW2 Brenn
+			//search keywords
+			setupTextUI(text_SearchKeyword, "Arial", 16, 200, Pos.BASELINE_LEFT, 340, 160, true);
+			text_SearchKeyword.setPromptText("Search posts...");
+
+			setupButtonUI(button_Search, "Dialog", 16, 100, Pos.CENTER, 550, 158);
+			button_Search.setOnAction((_) -> { ControllerPostDisplay.performSearch(); });
+
+			setupButtonUI(button_ClearSearch, "Dialog", 16, 100, Pos.CENTER, 660, 158);
+			button_ClearSearch.setOnAction((_) -> { 
+			    text_SearchKeyword.setText("");
+			    postDisplay.setAll(theDatabase.displayPostHelper()); 
+			});
 			
 			//HW2 brenn
 			setupComboBoxUI(combobox_SelectPostThread, "Arial", 14, 130, 500, 108);
@@ -224,6 +242,7 @@ public class ViewPostDisplay{
 	         theRootPane.getChildren().addAll(
 				label_PageTitle, label_UserDetails, line_Separator1,label_CreatePost,text_PostContent,button_Post,
 				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,
+				text_SearchKeyword, button_Search, button_ClearSearch,
 		        line_Separator2,displayPosts, line_Separator4, button_Home, button_Quit);
 	}
 		
