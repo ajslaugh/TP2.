@@ -472,7 +472,27 @@ public class Database {
 		    return postDisplay;
 		}
 	
-	
+	//HW2 Brenn
+		//search posts by keyword
+		public ObservableList<Post> searchPostsByKeyword(String keyword) {
+		    ObservableList<Post> results = FXCollections.observableArrayList();
+		    // % on both sides means "keyword can appear anywhere in the post"
+		    String query = "SELECT post, username, role, thread, number FROM userPosts " +
+		                   "WHERE LOWER(post) LIKE LOWER(?)";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1, "%" + keyword + "%");
+		        ResultSet rs = pstmt.executeQuery();
+		        while (rs.next()) {
+		            Post p = new Post(rs.getString("username"), rs.getString("role"),
+		                              rs.getString("post"), rs.getString("thread"));
+		            p.setID(rs.getInt("number"));
+		            results.add(p);
+		        }
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		    }
+		    return results;
+		}
 
 
 	// Returns full user info (List<String[]>)
