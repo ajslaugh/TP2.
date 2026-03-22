@@ -261,7 +261,7 @@ protected static void performNewPost() {
 				reply[0], reply[2], reply[3], reply[1]));}}
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
 		alert.setTitle("Replies");
-		alert.setHeaderText("These are the replies to this post");
+		alert.setHeaderText("Replies for " + ogPost.toString());
 		alert.setContentText(replyList.toString());
 	    ButtonType reply = new ButtonType("Reply to this Post");
 	    
