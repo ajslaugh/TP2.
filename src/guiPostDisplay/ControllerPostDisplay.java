@@ -1,12 +1,16 @@
+
 package guiPostDisplay;
 
 import java.sql.SQLException;
+
+
+import javafx.scene.control.ButtonBar;
 import java.util.Optional;
 import entityClasses.Reply;
 import entityClasses.User;
 import database.Database;
 import entityClasses.Post;
-import javafx.scene.control.Alert.AlertType;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
@@ -138,40 +142,60 @@ protected static void performNewPost() {
 	ViewPostDisplay.alertPosted.showAndWait();
 	
 }
+
+
 //delete your own post for students
 	protected static boolean deletePost(Post post) {
+		Alert alert2 = new Alert(Alert.AlertType.NONE);
 		Alert alert = new Alert(Alert.AlertType.NONE);
+
+		alert2.setTitle("Are you sure?");
+		alert2.setContentText("Are you sure you want to delete this post? Users will still be able to see all replies.");
+		
 		alert.setTitle("Delete post?");
 		alert.setHeaderText("This is your own post, do you want to view replies or delete it?");
+		
+		ButtonType goBack = new ButtonType("Back to Replies");
+		ButtonType delete2 = new ButtonType("Delete Post");
+		
 		ButtonType reply = new ButtonType("View Replies");
 		ButtonType delete = new ButtonType("Delete Post");
-		
-		alert.getButtonTypes().addAll(reply, delete);
-		
+
+		ButtonType cancel = new ButtonType("ViewReplies", ButtonBar.ButtonData.CANCEL_CLOSE);
+		ButtonType cancel2 = new ButtonType("Back To Replies", ButtonBar.ButtonData.CANCEL_CLOSE);
+		alert.getButtonTypes().addAll(delete,cancel);
+		alert2.getButtonTypes().addAll(delete2, cancel2);
+
 		Optional<ButtonType> result = alert.showAndWait();
 		
+		
+
 		if(result.isPresent()) {
-			if(result.get() == reply) {
-				performNewReply(post);
-				return false;
-			}
 			if(result.get() == delete) {
-				boolean postDeleted;
-				postDeleted = theDatabase.deletePost(post);
-				if(postDeleted) {
-					Alert deleteAlert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setHeaderText("POST DELETED");
-					alert.setContentText("YOU HAVE SUCCESSFULLY DELETED THIS POST");
-					alert.showAndWait();
-					return true;
-				}
-				else {
-					Alert deleteAlert = new Alert(Alert.AlertType.INFORMATION);
-					alert.setHeaderText("COULD NOT DELETE POST");
-					alert.setContentText("THERE WAS AN ISSUE DELETING POST FROM DATABASE");
-					alert.showAndWait();
+				Optional<ButtonType> result2 = alert2.showAndWait();
+				if(result2.get() == goBack) {
 					return false;
 				}
+				if(result2.get() == delete2) {
+					boolean postDeleted;
+					postDeleted = theDatabase.deletePost(post);
+					if(postDeleted) {
+						Alert deleteAlert = new Alert(Alert.AlertType.INFORMATION);
+						alert.setHeaderText("Post Deleted");
+						alert.setContentText("You Have Successfully Deleted This Post");
+						alert.showAndWait();
+						return true;
+				}
+					else {
+						Alert deleteAlert = new Alert(Alert.AlertType.INFORMATION);
+						alert.setHeaderText("COULD NOT DELETE POST");
+						alert.setContentText("THERE WAS AN ISSUE DELETING POST FROM DATABASE");
+						alert.showAndWait();
+						return false;
+					}
+				}
+
+				
 			}
 		}
 		return false;
@@ -182,7 +206,15 @@ protected static void performNewPost() {
 	//called when student uses the combobox
 	protected static void performFilter() {
 		ViewPostDisplay.postDisplay.setAll(getFilteredPosts());
+	}
 
+	protected static void showMyPosts() {
+		ViewPostDisplay.postDisplay.setAll(theDatabase.getOwnPosts());
+		
+	}
+	
+	protected static void showMyUnread() {
+		ViewPostDisplay.postDisplay.setAll(theDatabase.getUnreadPosts());
 	}
 	
 	//HW2 Brenn adjust
@@ -194,7 +226,23 @@ protected static void performNewPost() {
 		else {
 			return theDatabase.getPostsByThread(selected);
 		}
-	}	
+	}
+
+	protected static void clearUnread(Post post) {
+		Alert alert =  new Alert(Alert.AlertType.INFORMATION);
+		int dec;
+		dec = theDatabase.getAuthorUnread(post);
+		theDatabase.DecrementUserUnread(post, dec);
+		theDatabase.decrementAuthorUnread(post);
+		alert.setTitle("You've read a new reply!");
+		alert.setContentText("You now have only have " + theDatabase.getUserUnread(theDatabase.getCurrentUsername()) + " unread replies!"
+				+ "\n Bringing you to all unread replies.");
+		ViewPostDisplay.postDisplay.setAll(theDatabase.getUnreadPosts());
+		
+		alert.showAndWait();
+	
+	}
+	
 	
 
 	//view replies
@@ -216,24 +264,16 @@ protected static void performNewPost() {
 		alert.setHeaderText("These are the replies to this post");
 		alert.setContentText(replyList.toString());
 	    ButtonType reply = new ButtonType("Reply to this Post");
-	    ButtonType exit = new ButtonType("Exit");
 	    
-	    alert.getButtonTypes().addAll(reply,exit);
+	    alert.getButtonTypes().addAll(reply);
 	    
 	    Optional<ButtonType> result = alert.showAndWait();
-	    
+
 	    if(result.isPresent()) {
 	    	if(result.get() == reply) {
 	    		performNewReply(ogPost);
 	    	}
-	    	if(result.get() == exit) {
-	    		return;
-	    	}
 	    }
-	    
-		
-
-		
 	}
 	
 	
@@ -263,6 +303,11 @@ protected static void performNewPost() {
 		
 		try {
 			theDatabase.addReply(reply);
+			theDatabase.updateReplyNumber(ogPost);
+			theDatabase.updateAuthorUnread(ogPost);
+			if(ogPost.getAuthor() != theDatabase.getCurrentUsername()) {
+					theDatabase.updateUserUnread(ogPost);
+			}
 		}
 		catch (SQLException e) {
           System.err.println("*** ERROR *** Database error trying to create a reply: " + 
@@ -274,10 +319,8 @@ protected static void performNewPost() {
 		ViewPostDisplay.alertPosted.setHeaderText("Reply Successful!");
 		ViewPostDisplay.alertPosted.setContentText("Your reply will be added to this posts list of replies");
 		ViewPostDisplay.alertPosted.showAndWait();
-		
-		
 	}
-
+	
 	//Brenn
 	//search post for keywords
 	protected static void performSearch() {
@@ -289,8 +332,6 @@ protected static void performNewPost() {
 	    }
 	    ViewPostDisplay.postDisplay.setAll(theDatabase.searchPostsByKeyword(keyword));
 	}
-
-
 	
 	protected static void performQuit() {
 		System.exit(0);
