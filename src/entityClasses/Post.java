@@ -14,16 +14,45 @@ package entityClasses;
 //HW2 post class
 public class Post {
 	
-	/*
-	 * These are the private attributes for this entity object
+    /**
+	 * The username or identifier of the post's author.
+	 * 
+	 * <p>Rationale: This attribute is required to associate each post
+	 * with the user who created it, as defined in student user stories.</p>
 	 */
-	
-    
-  
     private String author;
+
+	 /**
+     * The main textual content of the post.
+     * 
+     * <p>Rationale: Stores the user generated message, which is the core
+     * functionality of the post system.</p>
+     *
+	 */
     private String content;
+
+	/**
+     * The role of the user who created the post.
+     * 
+     * <p>Rationale: Supports role based behavior and future staff related
+     * features such as moderation and permissions.</p>
+     */
     private String role;
+
+	/**
+     * The thread  to which this post belongs.
+     * 
+     * <p>Rationale: Enables grouping of posts and supports discussion based
+     * organization required by user stories.</p> 
+     */
     private String thread;
+
+	/**
+     * The unique identifier associated with a post.
+     * 
+     * <p>Rationale: Enables a user to search for a specific post 
+     * they are looking to delete or reply to or view. 
+     */
     private int postID;
     
     
@@ -62,16 +91,16 @@ public class Post {
         this.role1 = r2;
         this.role2 = r3; */
     }
-    
+
+	/*****
+     * <p> Method: int getId() </p>
+     * 
+     * <p> Description: This getter returns the unique ID of the post. </p>
+     * 
+     * @return an int of the post's ID
+	 *
+     */
     public int getID() {return postID;}    
-    
-    public String toString() {
-    	return String.format("%s %s to %s thread: %s", role, author, thread, content);
-    	
-    }
-
-
-    
 
     /*****
      * <p> Method: String getContent() </p>
@@ -120,15 +149,62 @@ public class Post {
     
     public String getThread() { return thread;} 
 
-   
+    /**
+     * Updates the content of the post.
+     * 
+     * <p>This method supports the student user story that allows users
+     * to modify their posts. Validation may be applied to ensure the
+     * content meets system requirements.</p>
+     * 
+     * @param s the new content of the post
+     */
     public void setContent(String s) { content = s; }
-    public void setAuthor(String s) { author = s; }
-    public void setRole(String s) { role = s; }
-    public void setThread(String s) { thread = s; }
-    public void setID(int s) {postID = s;}
-    
-    
-    
 
- 
+	/**
+     * Updates the author of the post.
+     * 
+     * <p>Rationale: Allows reassignment or correction of post ownership,
+     * which may be necessary for administrative operations.</p>
+     * 
+     * @param s the new author name
+     */
+    public void setAuthor(String s) { author = s; }
+	
+	/**
+     * Updates the role associated with the post.
+     * 
+     * <p>Rationale: Supports role-based behavior such as distinguishing
+     * between students and staff for future system features.</p>
+     * 
+     * @param s the new role value
+     */
+    public void setRole(String s) { role = s; }
+
+	/**
+     * Updates the thread to which this post belongs.
+     * 
+     * <p>Rationale: Enables reorganizing posts within different discussion
+     * threads as required by user interactions.</p>
+     * 
+     * @param s the new thread identifier
+     */
+    public void setThread(String s) { thread = s; }
+
+	/**
+	* Updates the unique identifier of the post.
+	* 
+	* <p>Rationale: Allows the system to assign or modify the post ID,
+	* which may be necessary during data initialization, migration,
+	* or administrative corrections. The ID should remain unique
+	* within the system.</p>
+	* 
+	* @param s the new post ID value
+	*/
+    public void setID(int s) {postID = s;}
+
+	@Override 
+	public String toString() {
+    	return String.format("%s %s to %s thread: %s", role, author, thread, content);
+    	
+    }
 }
