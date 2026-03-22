@@ -143,7 +143,8 @@ public class Database {
 			  + "newRole1 BOOL DEFAULT FALSE, "
 			  + "newRole2 BOOL DEFAULT FALSE, "
 			  + "oneTimePassword VARCHAR(255), " // ***MODIFIED***
-			  + "changePassword BOOL DEFAULT FALSE" // ***MODIFIED***
+			  + "changePassword BOOL DEFAULT FALSE," // ***MODIFIED***
+			  + "numUnread INT DEFAULT 0"//***MODIFIED***
 			  + ")";
 		statement.execute(userTable);
 		
@@ -155,16 +156,22 @@ public class Database {
 		        + "expiresAt BIGINT)"; // ***MODIFIED*** added deadline column
 
 	    statement.execute(invitationCodesTable);
+	    
+	    //Alex
+	    //Create the post table
 	    String postTable="CREATE TABLE IF NOT EXISTS userPosts(" 
 	    		+ "number INT AUTO_INCREMENT PRIMARY KEY,"
 	    		+ "post VARCHAR(255),"
 	    		+ "username VARCHAR(255), "
 	    		+ "role VARCHAR(255), "
+	    		+ "deleted INT DEFAULT 0,"
+	    		+ "numReplies INT DEFAULT 0,"
+	    		+ "authorUnread INT DEFAULT 0,"
 	    		+ "thread VARCHAR(255) DEFAULT 'General')";
 		
 	    statement.execute(postTable);
-	    
-	//Alex reply table 
+	//Alex
+	//Create the reply table 
 	String replyTable="CREATE TABLE IF NOT EXISTS userReplies(" 
 			+ "id INT AUTO_INCREMENT PRIMARY KEY,"
 			+ "replyTo INT,"
@@ -175,7 +182,7 @@ public class Database {
 	
     statement.execute(replyTable);
 	
-	// thread table
+	// Brenn thread table
 	String threadTable = "CREATE TABLE IF NOT EXISTS threadTypes("
         + "id INT AUTO_INCREMENT PRIMARY KEY,"
         + "thread_name VARCHAR(255) UNIQUE)";
@@ -471,8 +478,53 @@ public class Database {
 				}
 		    return postDisplay;
 		}
-	
-	//HW2 Brenn
+		//Alex
+		//get all unread posts
+		public ObservableList<Post> getUnreadPosts() {
+		    ObservableList<Post> postDisplay = FXCollections.observableArrayList();
+		    Post newPost;
+		    String query = "SELECT post, username, role, thread, number FROM userPosts WHERE authorUnread > ? AND username = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setInt(1, 0);
+		        pstmt.setString(2, currentUsername);
+		        ResultSet rs = pstmt.executeQuery();
+		        while(rs.next()) {
+		        	newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
+		        	newPost.setID(rs.getInt("number"));
+		       		postDisplay.add(newPost);
+		        }
+		     }
+				catch(SQLException e) {
+					e.printStackTrace();
+					return postDisplay;
+				}
+		    return postDisplay;
+		}
+		
+		//Alex
+		//Get users own posts
+		public ObservableList<Post> getOwnPosts() {
+		    ObservableList<Post> postDisplay = FXCollections.observableArrayList();
+		    Post newPost;
+		    String query = "SELECT post, username, role, thread, number FROM userPosts WHERE username = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1,currentUsername);
+		        ResultSet rs = pstmt.executeQuery();
+		        while(rs.next()) {
+		        	newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
+		        	newPost.setID(rs.getInt("number"));
+		        	postDisplay.add(newPost);
+		       	}
+		       }
+				catch(SQLException e) {
+					e.printStackTrace();
+					return postDisplay;
+				}
+		    return postDisplay;
+		}
+
+
+		// Brenn
 		//search posts by keyword
 		public ObservableList<Post> searchPostsByKeyword(String keyword) {
 		    ObservableList<Post> results = FXCollections.observableArrayList();
@@ -492,9 +544,7 @@ public class Database {
 		        e.printStackTrace();
 		    }
 		    return results;
-		}
-
-
+		}	
 	// Returns full user info (List<String[]>)
 	// MODIFIED by KYLE PORCHE
 	
@@ -525,16 +575,7 @@ public class Database {
 	    return users;
 	}
 	
-	/*******
-	 * <p> Method: getAllPosts() </p>
-	 * 
-	 * <p> Description: Returns a List<String[]> of userPosts to display all posts.  </p>
-	 *  
-	 * @return List<String[]>
-	 * 
-	 */
-	
-	
+
 
 	
 
@@ -546,7 +587,8 @@ public class Database {
 	 * @return isownPost boolean 
 	 * 
 	 */
-	//Alex is own post
+	//Alex
+	//Checks to see if post is own post
 	public boolean isOwnPost(Post post) {
 		String author = post.getAuthor();
 		if(currentUsername.equals(author)) {
@@ -557,6 +599,147 @@ public class Database {
 		}
 		
 				
+	}
+	
+	//Alex
+	//Updates the number of replies a post has
+	public boolean updateReplyNumber(Post post) {
+		int postID = post.getID();
+		String query = "UPDATE userPosts SET numReplies = numReplies + 1 WHERE number = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setInt(1, postID);
+			return (pstmt.executeUpdate() > 0);
+	}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	
+	//Alex
+	//Updates the number of unread replies the author has on a single post
+	public boolean updateAuthorUnread(Post post) {
+		int postID = post.getID();
+		String query = "UPDATE userPosts SET authorUnread = authorUnread + 1 WHERE number = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setInt(1, postID);
+			return (pstmt.executeUpdate() > 0);
+	}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	
+	//Alex
+	//Decrements the number of unread replies after author views the post.
+	public boolean decrementAuthorUnread(Post post) {
+		int postID = post.getID();
+		String query = "UPDATE userPosts SET authorUnread = ? WHERE number = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setInt(1, 0);
+			pstmt.setInt(2, postID);
+			return (pstmt.executeUpdate() > 0);
+	}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	//Alex
+	//Increments users total unread replies by 1
+	public boolean updateUserUnread(Post post) {
+		String theUser = post.getAuthor();
+		String query = "UPDATE userDB SET numUnread = numUnread + 1 WHERE username = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setString(1, theUser);
+			return (pstmt.executeUpdate() > 0);
+	}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	//Alex
+	//Decrements number of unread replies on a single post by the author by how many unread replies that post had
+	public boolean DecrementUserUnread(Post post, int num) {
+		String theUser = post.getAuthor();
+		int dec = getUserUnread(theUser) - num;
+		String query = "UPDATE userDB SET numUnread = ? WHERE username = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setInt(1, dec);
+			pstmt.setString(2, theUser);
+			return (pstmt.executeUpdate() > 0);
+	}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	//Alex
+	//Gets number of unread replies a user has total.
+	public int getUserUnread(String theUser) {
+		int unread;
+		String query = "SELECT numUnread FROM userDB WHERE username = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+				pstmt.setString(1, theUser);
+				ResultSet rs = pstmt.executeQuery();
+				if(rs.next()) {
+				unread = rs.getInt("numUnread");
+				return unread;
+				}
+				else {return 0;}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	
+	//Alex
+	//Get number of unread posts the author has
+	public int getAuthorUnread(Post post) {
+		int postID = post.getID();
+		int unread;
+		String query = "SELECT authorUnread FROM userPosts WHERE number = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+				pstmt.setInt(1, postID);
+				ResultSet rs = pstmt.executeQuery();
+				if(rs.next()) {
+				unread = rs.getInt("authorUnread");
+				return unread;
+				}
+				
+				return 0;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	
+
+	public int getNumReplies(Post post) {
+		int postID = post.getID();
+		int replies;
+		String query = "SELECT numReplies FROM userPosts WHERE number = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+				pstmt.setInt(1, postID);
+				ResultSet rs = pstmt.executeQuery();
+				replies = rs.getInt("numReplies");
+				return replies;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
 	}
 	/*******
 	 * <p> Method: getRepliesFromPost(int) </p>
@@ -633,7 +816,7 @@ public class Database {
 	 *
 	 * @return true if a user was deleted, false otherwise
 	 */
-	//hw2
+	
 	public boolean deleteUser(String userName) {
 
 	    // Basic safety checks
@@ -1026,26 +1209,55 @@ public class Database {
 	
 	//HW2 Delete post
 	/*******
-	 * <p> Method: deletePost(int) </p>
+	 * <p> Method: deletePost(post) </p>
 	 * 
 	 * <p> Description: Return boolean to show if post was deleted or not.  </p>
 	 *  
 	 * @return boolean deleted  
 	 * 
 	 */
+	//alex
+	//Delets content and username from a post, keeping it live 
 	public boolean deletePost(Post post) {
-		String query = "DELETE FROM userPosts WHERE number = ?";
+		String query = "UPDATE userPosts SET post = ?, username = ?, deleted = ? WHERE number = ?";
 		int postID = post.getID();
+		String deletedPost = "This post has been deleted";
+		String deletedUser = "DELETED";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-	        pstmt.setInt(1, postID);
-	        return pstmt.executeUpdate() > 0;
+			pstmt.setString(1, deletedPost);
+			pstmt.setString(2, deletedUser);
+			pstmt.setInt(3,  1);
+	        pstmt.setInt(4, postID);
+	        return (pstmt.executeUpdate() > 0);
 	        
 	    } catch (SQLException e) {
+	    	e.printStackTrace();
 	        return false;
 	    }
 		
 	}
 	
+	//Alex
+	//Return a boolean to show if a post has been successfully deleted
+	public boolean isDeleted(Post post) {
+		String query = "SELECT deleted FROM userPosts WHERE number = ?";
+		int postID = post.getID();
+		int deletedPost;
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setInt(1,postID);
+			ResultSet rs = pstmt.executeQuery();
+			deletedPost = rs.getInt("deleted");
+			if(deletedPost == 0) {
+				return false;
+			}
+			else {
+				return true;
+			}
+		}
+		catch(SQLException e) {
+			return false;
+		}
+	}
 	//HW2 delete Reply
 	/*******
 	 * <p> Method: deleteReply(int) </p>
@@ -1055,6 +1267,7 @@ public class Database {
 	 * @return boolean deleted  
 	 * 
 	 */
+	//needed for role 2
 	public boolean deleteReply(int id) {
 		String query = "DELETE FROM userReplies WHERE number = ?";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
