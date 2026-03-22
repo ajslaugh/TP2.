@@ -466,7 +466,7 @@ public class Database {
 		        pstmt.setString(1, thread);
 		        ResultSet rs = pstmt.executeQuery();
 		        while(rs.next()) {
-		        	if(rs.getString("thread") == thread) {
+		        	if(rs.getString("thread").equals(thread)) {
 		        		newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
 		        		newPost.setID(rs.getInt("number"));
 		        		postDisplay.add(newPost);
