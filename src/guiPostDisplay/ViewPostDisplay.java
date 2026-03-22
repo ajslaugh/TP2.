@@ -40,6 +40,7 @@ public class ViewPostDisplay{
 		//GUI Area 1
 		protected static Label label_PageTitle = new Label();
 		protected static Label label_UserDetails = new Label();
+		protected static Label label_numReplies = new Label();
 		
 
 		// GUI Area 1: Invites user to create a post hw2
@@ -66,9 +67,14 @@ public class ViewPostDisplay{
 		//search keywords
 		protected static TextField text_SearchKeyword = new TextField();
 		protected static Button button_Search = new Button("Search");
-		protected static Button button_ClearSearch = new Button("Show All");
-		
-		
+		protected static Button button_ClearSearch = new Button("Show All Posts");
+				
+		//My Posts Section
+		protected static Label label_myAccount = new Label("My Posts: ");
+		protected static List<String> myPosts = new ArrayList<>();
+		protected static List<String> myUnread = new ArrayList<>();
+		protected static Button button_myPosts = new Button("My Posts");
+		protected static Button button_myUnread = new Button("Unread Replies");
 		
 		// This is a separator and it is used to partition the GUI for various tasks
 		protected static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -113,9 +119,15 @@ public class ViewPostDisplay{
 			// Populate the dynamic aspects of the GUI with the data from the user and the current
 			// state of the system.
 			theDatabase.getUserAccountDetails(user.getUserName());
+			
+			//will need to update later
+			theRole = 2;
+
 			applicationMain.FoundationsMain.activeHomePage = theRole;
 			
 			label_UserDetails.setText("User: " + theUser.getUserName());
+			//patch
+			label_numReplies.setText("You have " + theDatabase.getUserUnread(theDatabase.getCurrentUsername()) + " unread replies.");
 					
 			// Set the title for the window, display the page, and wait for the Admin to do something
 			theStage.setTitle("CSE 360 Foundations: Posts"); // ***MODIFIED*** Role1 -> Student									
@@ -152,30 +164,31 @@ public class ViewPostDisplay{
 			setupLabelUI(label_PageTitle, "Arial", 28, width, Pos.CENTER, 0, 5);
 
 			setupLabelUI(label_UserDetails, "Arial", 20, width, Pos.BASELINE_LEFT, 20, 55);
+			//patch
+			setupLabelUI(label_numReplies, "Arial", 20, width, Pos.BASELINE_LEFT, 150, 55);
 			
 			
-			// GUI Area 2 hw2
+			// GUI Area 2 
 			setupLabelUI(label_CreatePost, "Arial", 20, 175, Pos.BASELINE_LEFT, 20, 110);
 			setupTextUI(text_PostContent, "Arial", 16, 350, Pos.BASELINE_LEFT,
 			140, 105, true);
 			setupButtonUI(button_Post,  "Dialog", 18, 100, Pos.CENTER,680, 103);
 			button_Post.setOnAction((_) -> {ControllerPostDisplay.performNewPost(); postDisplay.setAll(theDatabase.displayPostHelper());});
 			
-			//HW2 Brenn
+			//Brenn
 			//search keywords
 			setupTextUI(text_SearchKeyword, "Arial", 16, 200, Pos.BASELINE_LEFT, 340, 160, true);
 			text_SearchKeyword.setPromptText("Search posts...");
 
 			setupButtonUI(button_Search, "Dialog", 16, 100, Pos.CENTER, 550, 158);
 			button_Search.setOnAction((_) -> { ControllerPostDisplay.performSearch(); });
-
-			setupButtonUI(button_ClearSearch, "Dialog", 16, 100, Pos.CENTER, 660, 158);
+			setupButtonUI(button_ClearSearch, "Dialog", 16, 100, Pos.CENTER, 660, 355);
 			button_ClearSearch.setOnAction((_) -> { 
 			    text_SearchKeyword.setText("");
 			    postDisplay.setAll(theDatabase.displayPostHelper()); 
 			});
 			
-			//HW2 brenn
+			//brenn
 			setupComboBoxUI(combobox_SelectPostThread, "Arial", 14, 130, 500, 108);
 			combobox_SelectPostThread.getItems().setAll(theDatabase.getAllThreadTypes());
 			combobox_SelectPostThread.setValue("General");
@@ -191,8 +204,18 @@ public class ViewPostDisplay{
 			combobox_FilterThread.getItems().setAll(filterOptions);
 			combobox_FilterThread.setValue("All");
 			combobox_FilterThread.setOnAction((_) -> { ControllerPostDisplay.performFilter(); });
+			setupLabelUI(label_myAccount, "Arial",  20, 130, Pos.BASELINE_LEFT, 680, 215);
+			setupButtonUI(button_myPosts, "Dialog",16,100,Pos.CENTER,660,255);
+			button_myPosts.setOnAction((_) -> {
+				ControllerPostDisplay.showMyPosts();
+			});
+			setupButtonUI(button_myUnread, "Dialog",16,100,Pos.CENTER,660, 305);
+			button_myUnread.setOnAction((_) -> {
+				ControllerPostDisplay.showMyUnread();
+			});
 			
-			//GUI Area 3 hw2
+			
+			//GUI Area 3
 		
 			postDisplay = theDatabase.displayPostHelper();
 			displayPosts.setItems(postDisplay);
@@ -222,13 +245,18 @@ public class ViewPostDisplay{
 			        		if(ControllerPostDisplay.deletePost(somePost)) {
 			        			postDisplay.setAll(theDatabase.displayPostHelper());
 			        		}
-			        	}
-			        	
+			        		if(theDatabase.getAuthorUnread(somePost) > 0) {
+			        			 ControllerPostDisplay.viewReplies(somePost);
+			        			ControllerPostDisplay.clearUnread(somePost);
+			    				label_numReplies.setText("You have " + theDatabase.getUserUnread(theDatabase.getCurrentUsername()) + " unread replies.");
+			        		}
+			        		else{
+			        			 ControllerPostDisplay.viewReplies(somePost);}
+			        		}
+			        	else {
 			            ControllerPostDisplay.viewReplies(somePost);
-			        }
-			    }
-			});
-			
+			    }}}}
+			);
 			
 			
 			
@@ -241,11 +269,10 @@ public class ViewPostDisplay{
 	        button_Quit.setOnAction((_) -> {ControllerPostDisplay.performQuit(); });
 
 			// This is the end of the GUI initialization code
-			
 			// Place all of the widget items into the Root Pane's list of children
 	         theRootPane.getChildren().addAll(
-				label_PageTitle, label_UserDetails, line_Separator1,label_CreatePost,text_PostContent,button_Post,
-				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,
+				label_PageTitle, label_UserDetails, label_numReplies, line_Separator1,label_CreatePost,text_PostContent,button_Post,
+				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,label_myAccount,button_myPosts, button_myUnread,
 				text_SearchKeyword, button_Search, button_ClearSearch,
 		        line_Separator2,displayPosts, line_Separator4, button_Home, button_Quit);
 	}
