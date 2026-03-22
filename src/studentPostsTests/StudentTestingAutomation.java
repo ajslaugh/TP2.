@@ -122,12 +122,15 @@ public class StudentTestingAutomation {
 	private static void testCreatePost(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Create a student post");
 
+		// create a new post and store it in the database
 		Post p = new Post("student1", "Student", "i need help with assignment 2", "General");
 		db.addPost(p);
 
+		// retrieve all posts and check for the new one
 		ObservableList<Post> posts = db.displayPostHelper();
 		Post found = findPost(posts, "student1", "i need help with assignment 2");
 
+		// verify the post exists and matches the thread
 		boolean passed = found != null &&
 				found.getThread().equals("General");
 
@@ -158,22 +161,28 @@ public class StudentTestingAutomation {
 	private static void testCreateReplyAndUnreadCount(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Create a reply and update unread count");
 
+		// create a post for the original author
 		Post p = new Post("studentOwner", "Student", "when are office hours?", "General");
 		db.addPost(p);
 
+		// retrieve the stored post to get its ID
 		Post stored = findPost(db.displayPostHelper(), "studentOwner", "when are office hours?");
 
+		// create a reply linked to the original post
 		Reply r = new Reply("studentResponder", "Student",
 				"4-5pm", "General", stored.getID());
 
+		// store the reply and update counts
 		db.addReply(r);
 		db.updateReplyNumber(stored);
 		db.updateAuthorUnread(stored);
 		db.updateUserUnread(stored);
 
+		// retrieve replies and unread count
 		List<String[]> replies = db.getRepliesFromPost(stored.getID());
 		int unread = db.getAuthorUnread(stored);
 
+		// verify reply count and unread count
 		boolean passed = replies.size() == 1 && unread == 1;
 
 		displayResult(passed,
@@ -204,11 +213,14 @@ public class StudentTestingAutomation {
 	private static void testSearchPostsByKeyword(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Search posts by keyword");
 
+		// insert two posts, only one contains the keyword
 		db.addPost(new Post("student2", "Student", "exam study guide", "General"));
 		db.addPost(new Post("student3", "Student", "assignment 3", "Homework"));
 
+		// perform keyword search
 		ObservableList<Post> results = db.searchPostsByKeyword("study");
 
+		// verify only the matching post is returned
 		boolean passed = containsPost(results, "exam study guide") &&
 				!containsPost(results, "assignment 3");
 
@@ -240,11 +252,14 @@ public class StudentTestingAutomation {
 	private static void testSearchAcrossAllThreads(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Search all threads");
 
+		// insert posts into different threads
 		db.addPost(new Post("student4", "Student", "project question", "General"));
 		db.addPost(new Post("student5", "Student", "project 2 help", "Homework"));
 
+		// search without specifying a thread
 		ObservableList<Post> results = db.searchPostsByKeyword("project");
 
+		// verify results include posts from all threads
 		boolean passed = results.size() >= 2;
 
 		displayResult(passed,
@@ -273,10 +288,13 @@ public class StudentTestingAutomation {
 	private static void testGetPostsByThread(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Retrieve posts by thread");
 
+		// insert a post into a specific thread
 		db.addPost(new Post("student6", "Student", "exam review date", "Exams"));
 
+		// retrieve posts filtered by thread
 		ObservableList<Post> posts = db.getPostsByThread("Exams");
 
+		// verify all returned posts belong to the selected thread
 		boolean passed = !posts.isEmpty() && threadMatch(posts, "Exams");
 
 		displayResult(passed,
@@ -305,15 +323,19 @@ public class StudentTestingAutomation {
 	private static void testGetOwnPosts(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Retrieve own posts");
 
+		// create and register a test user
 		User u = buildUser("ownerStudent");
 		db.register(u);
 		db.getUserAccountDetails("ownerStudent");
 
+		// insert posts from two different users
 		db.addPost(new Post("ownerStudent", "Student", "my post", "General"));
 		db.addPost(new Post("other", "Student", "other post", "General"));
 
+		// retrieve posts for the current user
 		ObservableList<Post> posts = db.getOwnPosts();
 
+		// verify only the current user's posts are returned
 		boolean passed = authorMatch(posts, "ownerStudent");
 
 		displayResult(passed,
@@ -342,22 +364,27 @@ public class StudentTestingAutomation {
 	private static void testGetUnreadPosts(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Retrieve unread posts");
 
+		// create and register a test user
 		User u = buildUser("unreadUser");
 		db.register(u);
 		db.getUserAccountDetails("unreadUser");
 
+		// create a post for the user
 		db.addPost(new Post("unreadUser", "Student", "help me", "General"));
 		Post stored = findPost(db.displayPostHelper(), "unreadUser", "help me");
 
+		// add a reply and update unread counts
 		db.addReply(new Reply("helper", "Student", "i can help", "General", stored.getID()));
 		db.updateReplyNumber(stored);
 		db.updateAuthorUnread(stored);
 		db.updateUserUnread(stored);
 
+		// retrieve unread posts
 		ObservableList<Post> unread = db.getUnreadPosts();
 
+		// verify the post appears in unread list
 		boolean passed = !unread.isEmpty();
-
+		
 		displayResult(passed,
 				"Unread posts retrieval succeeded.",
 				"Unread posts retrieval failed.");
@@ -383,14 +410,21 @@ public class StudentTestingAutomation {
 	private static void testDeletePostKeepsReplies(int testCase) throws SQLException {
 		displayTestHeader(testCase, "Delete post but keep replies");
 
+		// create a post to be deleted
 		db.addPost(new Post("deleteUser", "Student", "to be deleted", "General"));
 		Post stored = findPost(db.displayPostHelper(), "deleteUser", "to be deleted");
 
-		db.addReply(new Reply("replyUser", "Student", "this reply should still be visible", "General", stored.getID()));
+		// add a reply to the post
+		db.addReply(new Reply("replyUser", "Student",
+				"this reply should still be visible", "General", stored.getID()));
 
+		// delete the post
 		boolean deleted = db.deletePost(stored);
+
+		// retrieve replies after deletion
 		List<String[]> replies = db.getRepliesFromPost(stored.getID());
 
+		// verify post is deleted but reply remains
 		boolean passed = deleted && replies.size() == 1;
 
 		displayResult(passed,
