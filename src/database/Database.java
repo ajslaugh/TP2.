@@ -112,7 +112,7 @@ public class Database {
 			connection = DriverManager.getConnection(DB_URL, USER, PASS);
 			statement = connection.createStatement(); 
 			// You can use this command to clear the database and restart from fresh.
-			//statement.execute("DROP ALL OBJECTS");
+			// statement.execute("DROP ALL OBJECTS");
 
 			createTables();  // Create the necessary tables if they don't exist
 		} catch (ClassNotFoundException e) {
@@ -183,13 +183,16 @@ public class Database {
     statement.execute(replyTable);
 	
 	// Brenn thread table
-	String threadTable = "CREATE TABLE IF NOT EXISTS threadTypes("
-        + "id INT AUTO_INCREMENT PRIMARY KEY,"
-        + "thread_name VARCHAR(255) UNIQUE)";
-		statement.execute(threadTable);
+    String threadTable = "CREATE TABLE IF NOT EXISTS threadTypes("
+    	    + "id INT AUTO_INCREMENT PRIMARY KEY,"
+    	    + "thread_name VARCHAR(255) UNIQUE NOT NULL,"
+    	    + "thread_description VARCHAR(500) DEFAULT '',"
+    	    + "status VARCHAR(20) DEFAULT 'active'"
+    	    + ")";
+    	statement.execute(threadTable);
 
-	statement.execute("INSERT INTO threadTypes (thread_name) "
-        + "SELECT 'General' WHERE NOT EXISTS ("
+	statement.execute("INSERT INTO threadTypes (thread_name, thread_description, status) "
+        + "SELECT 'General', 'Default discussion thread', 'active' WHERE NOT EXISTS ("
         + "SELECT 1 FROM threadTypes WHERE thread_name = 'General'"
         +")"
         );}
@@ -478,6 +481,180 @@ public class Database {
 				}
 		    return postDisplay;
 		}
+		
+		/***************************************
+		 * Thread Management Methods (Staff)
+		 ***************************************/
+		
+		/*****
+		 * Retrieves all threads from the database including their name,
+		 * description, and status.
+		 * 
+		 * @return list of all thread objects in the system
+		 */
+		public List<entityClasses.ThreadType> getAllThreadsDetailed() {
+		    List<entityClasses.ThreadType> threads = new ArrayList<>();
+		    String query = "SELECT id, thread_name, thread_description, status FROM threadTypes ORDER BY thread_name";
+
+		    try (PreparedStatement pstmt = connection.prepareStatement(query);
+		         ResultSet rs = pstmt.executeQuery()) {
+
+		        while (rs.next()) {
+		            entityClasses.ThreadType thread = new entityClasses.ThreadType(
+		                rs.getString("thread_name"),
+		                rs.getString("thread_description"),
+		                rs.getString("status")
+		            );
+		            thread.setId(rs.getInt("id"));
+		            threads.add(thread);
+		        }
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		    }
+
+		    return threads;
+		}   
+		
+		/*****
+		 * Retrieves all active thread names from the database.
+		 * 
+		 * @return a list of thread names that are currently active
+		 */
+		public List<String> getActiveThreadTypes() {
+			List<String> threads = new ArrayList<>();
+			String query = "SELECT thread_name FROM threadTypes WHERE status = 'active' ORDER BY thread_name";
+			try (PreparedStatement pstmt = connection.prepareStatement(query);
+					ResultSet rs = pstmt.executeQuery()) {
+				while (rs.next()) {
+					threads.add(rs.getString("thread_name"));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return threads;
+		}
+		   
+		
+		/*****
+		 * Wrapper method for creating a new thread as a staff member.
+		 * Sets the default status to "active".
+		 * 
+		 * @param threadName thread name
+		 * @param description thread description
+		 * @return true if the thread was successfully created, false otherwise
+		 */		
+		public boolean addThreadType(String threadName, String description) {
+			return addThreadTypeStaff(threadName, description, "active");
+		}
+		
+		/*****
+		 * Creates a new thread in the database with the specified attributes.
+		 * This method performs the actual database insertion.
+		 * 
+		 * @param threadName thread name
+		 * @param description thread description
+		 * @param status thread status (active vs. archived)
+		 * @return true if the thread was successfully inserted, false otherwise
+		 */
+		private boolean addThreadTypeStaff(String threadName, String description, String status) {
+		    if (threadName == null || threadName.trim().isEmpty()) return false;
+
+		    String query = "INSERT INTO threadTypes (thread_name, thread_description, status) VALUES (?, ?, ?)";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1, threadName.trim());
+		        pstmt.setString(2, description == null ? "" : description.trim());
+		        pstmt.setString(3, status == null ? "active" : status);
+		        pstmt.executeUpdate();
+		        return true;
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		        return false;
+		    }
+		}
+		
+		/*****
+		 * Updates an existing thread's name, description, and status.
+		 * 
+		 * @param id thread id
+		 * @param name the updated thread name
+		 * @param description the updated thread description
+		 * @param status the updated status (active vs. archived)
+		 * @return true if the update was successful, false otherwise
+		 */
+		public boolean updateThreadType(int id, String name, String description, String status) {
+		    if (name == null || name.trim().isEmpty()) return false;
+		    if (status == null || status.trim().isEmpty()) status = "active";
+
+		    String query = "UPDATE threadTypes SET thread_name = ?, thread_description = ?, status = ? WHERE id = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1, name.trim());
+		        pstmt.setString(2, description == null ? "" : description.trim());
+		        pstmt.setString(3, status.trim().toLowerCase());
+		        pstmt.setInt(4, id);
+		        return pstmt.executeUpdate() > 0;
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		        return false;
+		    }
+		}
+		
+		/*****
+		 * Deletes a thread from the database using its ID.
+		 * The "General" thread cannot be deleted.
+		 * 
+		 * @param id thread id
+		 * @return true if the thread was successfully deleted, false otherwise
+		 */
+		public boolean removeThreadTypeById(int id) {
+		    String query = "DELETE FROM threadTypes WHERE id = ? AND thread_name <> 'General'";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setInt(1, id);
+		        return pstmt.executeUpdate() > 0;
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		        return false;
+		    }
+		}
+		
+		/*****
+		 * Archives a thread by updating its status to "archived".
+		 * Archived threads are read-only and cannot accept new posts or replies.
+		 * 
+		 * @param id thread id
+		 * @return true if the thread was successfully archived, false otherwise
+		 */
+		public boolean archiveThreadType(int id) {
+		    String query = "UPDATE threadTypes SET status = 'archived' WHERE id = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setInt(1, id);
+		        return pstmt.executeUpdate() > 0;
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		        return false;
+		    }
+		}
+		
+		/*****
+		 * Checks if a thread is currently active.
+		 * 
+		 * @param threadName name of the thread to check
+		 * @return true if the thread is active, false if it is archived or not found
+		 */
+		public boolean isThreadActive(String threadName) {
+		    String query = "SELECT status FROM threadTypes WHERE thread_name = ?";
+		    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+		        pstmt.setString(1, threadName);
+		        ResultSet rs = pstmt.executeQuery();
+		        if (rs.next()) {
+		            return "active".equalsIgnoreCase(rs.getString("status"));
+		        }
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		    }
+		    return false;
+		}
+		
+		
 		//Alex
 		//get all unread posts
 		public ObservableList<Post> getUnreadPosts() {
@@ -1269,7 +1446,7 @@ public class Database {
 	 */
 	//needed for role 2
 	public boolean deleteReply(int id) {
-		String query = "DELETE FROM userReplies WHERE number = ?";
+		String query = "DELETE FROM userReplies WHERE id = ?";
 		try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        pstmt.setInt(1, id);
 	        return pstmt.executeUpdate() > 0;
