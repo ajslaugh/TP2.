@@ -100,7 +100,16 @@ public class ControllerRole2Home {
 		}
 	}
 	
-	
+    /*****
+     * Navigates to post display page
+     */
+    protected static void performViewPosts() {
+        guiPostDisplay.ViewPostDisplay.displayPosts(
+            ViewRole2Home.theStage,
+            ViewRole2Home.theUser
+        );
+    }
+
 	//hw2 perform new post
 	protected static void performNewPost() {
 		setAuthor();
@@ -132,10 +141,6 @@ public class ControllerRole2Home {
 		ViewRole2Home.alertPosted.setHeaderText("Posting Successful!");
 		ViewRole2Home.alertPosted.setContentText("Your post will be displayed for all students and staff");
 		ViewRole2Home.alertPosted.showAndWait();
-		
-		
-
-
 		
 		
 	}
@@ -178,10 +183,6 @@ public class ControllerRole2Home {
 	    		return;
 	    	}
 	    }
-	    
-	    
-		
-
 		
 	}
 	
@@ -212,11 +213,8 @@ public class ControllerRole2Home {
 			alert.showAndWait();
 			return;
 		}
-		
-		
-		
+
 		Reply reply = new Reply(author, role, replyContent, thread, replyNumber);
-		
 		
 		try {
 			theDatabase.addReply(reply);
@@ -231,24 +229,7 @@ public class ControllerRole2Home {
 		ViewRole2Home.alertPosted.setHeaderText("Reply Successful!");
 		ViewRole2Home.alertPosted.setContentText("Your reply will be added to this posts list of replies");
 		ViewRole2Home.alertPosted.showAndWait();
-		
-		
-
-
-		
-		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	/**********
 	 * <p> Method: performLogout() </p>
