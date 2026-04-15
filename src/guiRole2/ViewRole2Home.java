@@ -68,9 +68,11 @@ public class ViewRole2Home {
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
 	protected static Line line_Separator2 = new Line(20, 150, width-20, 150);
 
-
-
+	protected static TextField text_PostContent = new TextField();
+	protected static Alert alertPosted = new Alert(Alert.AlertType.INFORMATION);
 	
+	protected static Button button_ViewPosts = new Button("View Posts");
+	protected static Button button_ThreadManagement = new Button("Thread Management");
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -177,7 +179,18 @@ public class ViewRole2Home {
 		
 		setupButtonUI(button_UpdateThisUser, "Dialog", 18, 170, Pos.CENTER, 610, 45);
 		button_UpdateThisUser.setOnAction((_) -> {ControllerRole2Home.performUpdate(); });
-
+		
+		// button that takes us to the discussion page
+		setupButtonUI(button_ViewPosts, "Dialog", 18, 200, Pos.CENTER, 50, 180);
+		button_ViewPosts.setOnAction((_) -> { 
+			ControllerRole2Home.performViewPosts();
+		});
+		// button that takes us to the thread management page
+		setupButtonUI(button_ThreadManagement, "Dialog", 18, 200, Pos.CENTER, 50, 240);
+		button_ThreadManagement.setOnAction((_) -> {
+		    guiThreadManagement.ViewThreadManagement.displayThreadManagement(theStage, theUser);
+		});
+		
 		// GUI Area 3
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
         button_Logout.setOnAction((_) -> {ControllerRole2Home.performLogout(); });
@@ -189,10 +202,9 @@ public class ViewRole2Home {
 		
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
-    			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-    	        line_Separator2, line_Separator4, button_Logout, button_Quit);
-	}
-	
+        	    label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1, line_Separator2,
+        	    line_Separator4, button_Logout, button_Quit, button_ViewPosts, button_ThreadManagement);	
+        }
 	
 	/*-********************************************************************************************
 
@@ -241,5 +253,27 @@ public class ViewRole2Home {
 		b.setLayoutY(y);		
 	}
 
+	/**********
+	 * Private local method to initialize the standard fields for a text field
+	 * 
+	 * @param t     The TextField object to be initialized
+	 * @param ff    The font to be used
+	 * @param f     The size of the font
+	 * @param w     The width of the TextField
+	 * @param p     The alignment
+	 * @param x     The x position
+	 * @param y     The y position
+	 * @param e     Specifies whether the field is editable
+	 */
+	private static void setupTextUI(TextField t, String ff, double f, double w, Pos p,
+	        double x, double y, boolean e){
+	    t.setFont(Font.font(ff, f));
+	    t.setMinWidth(w);
+	    t.setMaxWidth(w);
+	    t.setAlignment(p);
+	    t.setLayoutX(x);
+	    t.setLayoutY(y);
+	    t.setEditable(e);
+	}
 
 }
