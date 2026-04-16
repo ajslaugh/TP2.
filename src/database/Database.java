@@ -414,6 +414,32 @@ public class Database {
 
 	    return usernames;
 	}
+	/*******
+*  <p> Method: List getStudentList() </p>
+*  
+*  <P> Description: Generate an List of Strings, one for each student role in the database,
+*  starting with "<Select Student>" at the start of the list. </p>
+*  MODIFIED by DACIA BAIL
+*  @return a list of students found in the database.
+*/
+	public List<String> getStudentList() {
+	    List<String> usernames = new ArrayList<>();
+	   
+	    String query = "SELECT userName FROM userDB WHERE NEWROLE1 = TRUE ORDER BY userName";
+
+	    
+	    try (PreparedStatement pstmt = connection.prepareStatement(query);
+	         ResultSet rs = pstmt.executeQuery()) {
+
+	        while (rs.next()) {
+	            usernames.add(rs.getString("userName"));
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return usernames;
+	}
 	
 	//HW2 Brenn 
 	   //get all current thread types
