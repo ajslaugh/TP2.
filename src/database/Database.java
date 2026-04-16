@@ -2183,5 +2183,207 @@ public class Database {
 			se.printStackTrace(); 
 		} 
 	}
+/*******
+	 * <p> Method: flagPost(int postID, String flaggedBy, String reason) </p>
+	 * 
+	 * <p> Description: Flags a post as inappropriate for staff review. </p>
+	 */
+	public boolean flagPost(int postID, String flaggedBy, String reason) {
+		try {
+			String sql = "INSERT INTO PostFlags (postID, flaggedBy, reason, timestamp, status) " +
+						 "VALUES (?, ?, ?, CURRENT_TIMESTAMP, 'PENDING')";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setInt(1, postID);
+			pstmt.setString(2, flaggedBy);
+			pstmt.setString(3, reason);
+			pstmt.executeUpdate();
+			pstmt.close();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Error flagging post: " + e.getMessage());
+			return false;
+		}
+	}
 
+	/*******
+	 * <p> Method: getAllFlaggedPosts() </p>
+	 * 
+	 * <p> Description: Retrieves all flagged posts for staff review. </p>
+	 */
+	public List<String[]> getAllFlaggedPosts() {
+		List<String[]> flaggedPosts = new ArrayList<>();
+		try {
+			String sql = "SELECT f.flagID, f.postID, f.flaggedBy, f.reason, f.status, p.post " +
+						 "FROM PostFlags f " +
+						 "JOIN userPosts p ON f.postID = p.number " +
+						 "ORDER BY f.timestamp DESC";
+			ResultSet rs = statement.executeQuery(sql);
+			while (rs.next()) {
+				String[] flag = new String[6];
+				flag[0] = String.valueOf(rs.getInt("flagID"));
+				flag[1] = String.valueOf(rs.getInt("postID"));
+				flag[2] = rs.getString("flaggedBy");
+				flag[3] = rs.getString("reason");
+				flag[4] = rs.getString("status");
+				flag[5] = rs.getString("post");
+				flaggedPosts.add(flag);
+			}
+		} catch (SQLException e) {
+			System.err.println("Error retrieving flagged posts: " + e.getMessage());
+		}
+		return flaggedPosts;
+	}
+
+	/*******
+	 * <p> Method: updateFlagStatus(int flagID, String newStatus) </p>
+	 * 
+	 * <p> Description: Updates the status of a flag (PENDING, APPROVED, RESOLVED). </p>
+	 */
+	public boolean updateFlagStatus(int flagID, String newStatus) {
+		try {
+			String sql = "UPDATE PostFlags SET status = ? WHERE flagID = ?";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setString(1, newStatus);
+			pstmt.setInt(2, flagID);
+			pstmt.executeUpdate();
+			pstmt.close();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Error updating flag status: " + e.getMessage());
+			return false;
+		}
+	}
+	
+	/*******
+	 * <p> Method: submitFeedback() </p>
+	 * 
+	 * <p> Description: Submits private feedback from one user to another. </p>
+	 */
+	public boolean submitFeedback(String fromUser, String toUser, String content, int targetPostID, String feedbackType) {
+		try {
+			String sql = "INSERT INTO Feedback (fromUser, toUser, content, targetPostID, isPrivate, timestamp, feedbackType) " +
+						 "VALUES (?, ?, ?, ?, TRUE, CURRENT_TIMESTAMP, ?)";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setString(1, fromUser);
+			pstmt.setString(2, toUser);
+			pstmt.setString(3, content);
+			pstmt.setInt(4, targetPostID);
+			pstmt.setString(5, feedbackType);
+			pstmt.executeUpdate();
+			pstmt.close();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Error submitting feedback: " + e.getMessage());
+			return false;
+		}
+	}
+
+	/*******
+	 * <p> Method: getFeedbackForUser() </p>
+	 * 
+	 * <p> Description: Retrieves all private feedback directed to a user. </p>
+	 */
+	public List<String[]> getFeedbackForUser(String toUser) {
+		List<String[]> feedbackList = new ArrayList<>();
+		try {
+			String sql = "SELECT feedbackID, fromUser, content, feedbackType, timestamp, isRead " +
+						 "FROM Feedback " +
+						 "WHERE toUser = ? AND isPrivate = TRUE " +
+						 "ORDER BY timestamp DESC";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setString(1, toUser);
+			ResultSet rs = pstmt.executeQuery();
+			
+			while (rs.next()) {
+				String[] feedback = new String[6];
+				feedback[0] = String.valueOf(rs.getInt("feedbackID"));
+				feedback[1] = rs.getString("fromUser");
+				feedback[2] = rs.getString("content");
+				feedback[3] = rs.getString("feedbackType");
+				feedback[4] = rs.getString("timestamp");
+				feedback[5] = String.valueOf(rs.getBoolean("isRead"));
+				feedbackList.add(feedback);
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			System.err.println("Error retrieving feedback: " + e.getMessage());
+		}
+		return feedbackList;
+	}
+
+	/*******
+	 * <p> Method: getFeedbackSentByUser() </p>
+	 * 
+	 * <p> Description: Retrieves all feedback sent by a user. </p>
+	 */
+	public List<String[]> getFeedbackSentByUser(String fromUser) {
+		List<String[]> feedbackList = new ArrayList<>();
+		try {
+			String sql = "SELECT feedbackID, toUser, content, feedbackType, timestamp, isRead " +
+						 "FROM Feedback " +
+						 "WHERE fromUser = ? " +
+						 "ORDER BY timestamp DESC";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setString(1, fromUser);
+			ResultSet rs = pstmt.executeQuery();
+			
+			while (rs.next()) {
+				String[] feedback = new String[6];
+				feedback[0] = String.valueOf(rs.getInt("feedbackID"));
+				feedback[1] = rs.getString("toUser");
+				feedback[2] = rs.getString("content");
+				feedback[3] = rs.getString("feedbackType");
+				feedback[4] = rs.getString("timestamp");
+				feedback[5] = String.valueOf(rs.getBoolean("isRead"));
+				feedbackList.add(feedback);
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			System.err.println("Error retrieving sent feedback: " + e.getMessage());
+		}
+		return feedbackList;
+	}
+
+	/*******
+	 * <p> Method: markFeedbackAsRead() </p>
+	 * 
+	 * <p> Description: Marks a feedback item as read. </p>
+	 */
+	public boolean markFeedbackAsRead(int feedbackID) {
+		try {
+			String sql = "UPDATE Feedback SET isRead = TRUE WHERE feedbackID = ?";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setInt(1, feedbackID);
+			pstmt.executeUpdate();
+			pstmt.close();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Error marking feedback as read: " + e.getMessage());
+			return false;
+		}
+	}
+
+	/*******
+	 * <p> Method: getUnreadFeedbackCount() </p>
+	 * 
+	 * <p> Description: Returns count of unread feedback for a user. </p>
+	 */
+	public int getUnreadFeedbackCount(String toUser) {
+		try {
+			String sql = "SELECT COUNT(*) AS count FROM Feedback WHERE toUser = ? AND isRead = FALSE";
+			PreparedStatement pstmt = connection.prepareStatement(sql);
+			pstmt.setString(1, toUser);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if (rs.next()) {
+				int count = rs.getInt("count");
+				pstmt.close();
+				return count;
+			}
+			pstmt.close();
+		} catch (SQLException e) {
+			System.err.println("Error getting unread feedback count: " + e.getMessage());
+		}
+		return 0;
+	}
 }
