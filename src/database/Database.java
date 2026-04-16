@@ -195,7 +195,53 @@ public class Database {
         + "SELECT 'General', 'Default discussion thread', 'active' WHERE NOT EXISTS ("
         + "SELECT 1 FROM threadTypes WHERE thread_name = 'General'"
         +")"
-        );}
+        );
+
+	//MODIFIED by KYLE 
+	// Create the PostFlags table 
+		String postFlagsTable = "CREATE TABLE IF NOT EXISTS PostFlags ("
+			+ "  flagID INT AUTO_INCREMENT PRIMARY KEY," 
+			+ "  postID INT NOT NULL,"
+			+ "  flaggedBy VARCHAR(255) NOT NULL,"
+			+ "  reason VARCHAR(1000) NOT NULL,"
+			+ "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+			+ "  status VARCHAR(50) DEFAULT 'PENDING',"
+			+ "  notes VARCHAR(1000),"
+			+ "  FOREIGN KEY (postID) REFERENCES userPosts(number),"
+			+ "  FOREIGN KEY (flaggedBy) REFERENCES userDB(userName)"
+			+ ")";
+		
+		try {
+			statement.execute(postFlagsTable);
+		} catch (SQLException e) {
+			System.out.println("PostFlags table may already exist: " + e.getMessage());
+		}
+		
+	// Create Feedback Table
+		String feedbackTable = "CREATE TABLE IF NOT EXISTS Feedback ("
+				+ "  feedbackID INT AUTO_INCREMENT PRIMARY KEY,"
+				+ "  fromUser VARCHAR(255) NOT NULL,"
+				+ "  toUser VARCHAR(255) NOT NULL,"
+				+ "  content VARCHAR(2000) NOT NULL,"
+				+ "  targetPostID INT,"
+				+ "  targetReplyID INT,"
+				+ "  isPrivate BOOL DEFAULT TRUE,"
+				+ "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+				+ "  isRead BOOL DEFAULT FALSE,"
+				+ "  feedbackType VARCHAR(50),"
+				+ "  FOREIGN KEY (fromUser) REFERENCES userDB(userName),"
+				+ "  FOREIGN KEY (toUser) REFERENCES userDB(userName),"
+				+ "  FOREIGN KEY (targetPostID) REFERENCES userPosts(number),"
+				+ "  FOREIGN KEY (targetReplyID) REFERENCES userReplies(id)"
+				+ ")";
+			statement.execute(feedbackTable);
+
+			statement.execute("INSERT INTO threadTypes (thread_name) "
+		        + "SELECT 'General' WHERE NOT EXISTS ("
+		        + "SELECT 1 FROM threadTypes WHERE thread_name = 'General'"
+		        +")"
+		        );
+	}
 
 /*******
  * <p> Method: isDatabaseEmpty </p>
