@@ -17,6 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.Alert;
@@ -109,6 +114,98 @@ public class ControllerRole2Home {
             ViewRole2Home.theUser
         );
     }
+
+    /*****
+     * Displays list of students <-- TP3
+     */
+    protected static void performViewStudents() {
+        List<String> students = theDatabase.getStudentList();
+        //theDatabase.debugPrintColumns();
+
+
+
+        if (students.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("No Students");
+            alert.setHeaderText(null);
+            alert.setContentText("There are no students in the database.");
+            alert.showAndWait();
+            return;
+        }
+		Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Students");
+
+        // ListView for clickable students
+        ListView<String> listView = new ListView<>();
+        listView.getItems().addAll(students);
+
+        // Double-click support
+        listView.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                String selected = listView.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    dialog.setResult(selected);
+                    dialog.close();
+                }
+            }
+        });
+
+        dialog.getDialogPane().setContent(listView);
+      Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return;
+
+        String selectedStudent = result.get();
+        showStudentOptions(selectedStudent);
+   }
+    
+    private static void showStudentOptions(String student) {
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Student Selected");
+        dialog.getDialogPane().setPrefSize(400, 200);
+        
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+
+        Label nameLabel = new Label("Selected Student: " + student);
+
+        Button btnBack = new Button("Back");
+        Button btnEvaluate = new Button("Evaluate");
+        Button btnCancel = new Button("Cancel");
+
+        btnBack.setOnAction(_ -> {
+            dialog.close();
+            performViewStudents(); // go back to list
+        });
+
+        btnEvaluate.setOnAction(_ -> {
+            dialog.close();
+            openEvaluationPage(student);
+        });
+
+        btnCancel.setOnAction(_ -> dialog.close());
+
+        HBox buttons = new HBox(10, btnBack, btnEvaluate, btnCancel);
+
+        box.getChildren().addAll(nameLabel, buttons);
+        dialog.getDialogPane().setContent(box);
+
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+    }
+
+	/*****
+	 * Evaluation Page ready, not functional right now
+	 */
+	 
+	private static void openEvaluationPage(String student) {
+        // TODO: Replace with your actual grading UI
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Evaluate Student");
+        alert.setHeaderText("Evaluation Page Placeholder");
+        alert.setContentText("Here you will grade: " + student);
+        alert.showAndWait();
+    } 
+
 
 	//hw2 perform new post
 	protected static void performNewPost() {
