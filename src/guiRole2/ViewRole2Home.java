@@ -73,6 +73,7 @@ public class ViewRole2Home {
 	
 	protected static Button button_ViewPosts = new Button("View Posts");
 	protected static Button button_ThreadManagement = new Button("Thread Management");
+	protected static Button button_ViewStudents = new Button("List of Students");
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -190,6 +191,11 @@ public class ViewRole2Home {
 		button_ThreadManagement.setOnAction((_) -> {
 		    guiThreadManagement.ViewThreadManagement.displayThreadManagement(theStage, theUser);
 		});
+		// button that shows the list of students
+		setupButtonUI(button_ViewStudents, "Dialog", 18, 200, Pos.CENTER, 50, 300);
+		button_ViewStudents.setOnAction((_) -> {
+		    ControllerRole2Home.performViewStudents();
+		});
 		
 		// GUI Area 3
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -203,7 +209,7 @@ public class ViewRole2Home {
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
         	    label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1, line_Separator2,
-        	    line_Separator4, button_Logout, button_Quit, button_ViewPosts, button_ThreadManagement);	
+        	    line_Separator4, button_Logout, button_Quit, button_ViewPosts, button_ThreadManagement, button_ViewStudents);	
         }
 	
 	/*-********************************************************************************************
