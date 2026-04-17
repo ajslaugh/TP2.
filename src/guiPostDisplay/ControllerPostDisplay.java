@@ -679,6 +679,38 @@ protected static void performNewPost() {
 			theDatabase.markFeedbackAsRead(feedbackID);
 		}
 	}
+
+	//ADDING STAFF ENDORSEMENT CONTROLLER METHOD
+protected static void performEndorsePost() {
+	Post selectedPost = ViewPostDisplay.displayPosts.getSelectionModel().getSelectedItem();
+
+	if(selectedPost == null) {
+		Alert alert = new Alert(Alert.AlertType.ERROR);
+		alert.setHeaderText("NO POST SELECTED");
+		alert.setContentText("PLEASE SELECT A POST TO ENDORSE.");
+		alert.showAndWait();
+		return;
+	}
+
+	if(!ViewPostDisplay.theUser.getNewRole2()) {
+		Alert alert = new Alert(Alert.AlertType.ERROR);
+		alert.setHeaderText("ACCESS DENIED");
+		alert.setContentText("ONLY STAFF CAN ENDORSE POSTS.");
+		alert.showAndWait();
+		return;
+	}
+
+	//ADDING REAL DATABASE CALL FOR ENDORSEMENT
+	boolean success = theDatabase.endorsePost(selectedPost.getID());
+
+	Alert alert = new Alert(success ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+	alert.setHeaderText(success ? "POST ENDORSED" : "FAILED");
+	alert.setContentText(success ? "POST SUCCESSFULLY ENDORSED." : "DATABASE ERROR.");
+	alert.showAndWait();
+
+	//REFRESH POSTS AFTER ENDORSEMENT
+	ViewPostDisplay.postDisplay.setAll(theDatabase.displayPostHelper());
+}
 	
 	protected static void performQuit() {
 		System.exit(0);
