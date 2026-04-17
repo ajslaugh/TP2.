@@ -156,18 +156,20 @@ public class Database {
 		        + "expiresAt BIGINT)"; // ***MODIFIED*** added deadline column
 
 	    statement.execute(invitationCodesTable);
-	    
-	    //Alex
+
+		//modified by jerry
+	    //Alex 
 	    //Create the post table
 	    String postTable="CREATE TABLE IF NOT EXISTS userPosts(" 
-	    		+ "number INT AUTO_INCREMENT PRIMARY KEY,"
-	    		+ "post VARCHAR(255),"
-	    		+ "username VARCHAR(255), "
-	    		+ "role VARCHAR(255), "
-	    		+ "deleted INT DEFAULT 0,"
-	    		+ "numReplies INT DEFAULT 0,"
-	    		+ "authorUnread INT DEFAULT 0,"
-	    		+ "thread VARCHAR(255) DEFAULT 'General')";
+		+ "number INT AUTO_INCREMENT PRIMARY KEY,"
+		+ "post VARCHAR(255),"
+		+ "username VARCHAR(255), "
+		+ "role VARCHAR(255), "
+		+ "deleted INT DEFAULT 0,"
+		+ "numReplies INT DEFAULT 0,"
+		+ "authorUnread INT DEFAULT 0,"
+		+ "endorsed INT DEFAULT 0," //ADDED ENDORSEMENT COLUMN
+		+ "thread VARCHAR(255) DEFAULT 'General')";
 		
 	    statement.execute(postTable);
 	//Alex
@@ -1033,26 +1035,28 @@ public class Database {
 	 * 
 	 */
 
-	public ObservableList<Post> displayPostHelper(){
-		ObservableList<Post> postDisplay = FXCollections.observableArrayList();
-		Post newPost;
-		String query = "SELECT post, username, role, thread, number FROM userPosts";
+	//CHANGES MADE BY JERRY TO ALLOW FOR POST ENDORSMENT
+public ObservableList<Post> displayPostHelper(){
+	ObservableList<Post> postDisplay = FXCollections.observableArrayList();
+	Post newPost;
+	String query = "SELECT post, username, role, thread, number, endorsed FROM userPosts";
+	
+	try(PreparedStatement pstmt = connection.prepareStatement(query);
+			ResultSet rs = pstmt.executeQuery()){
 		
-		try(PreparedStatement pstmt = connection.prepareStatement(query);
-				ResultSet rs = pstmt.executeQuery()){
-			
-			while(rs.next()) {
-				newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
-				newPost.setID(rs.getInt("number"));
-				postDisplay.add(newPost);
-			}}
-			catch(SQLException e) {
-				e.printStackTrace();
-				return postDisplay;
-			}
+		while(rs.next()) {
+			newPost = new Post(rs.getString("username"), rs.getString("role"), rs.getString("post"), rs.getString("thread"));
+			newPost.setID(rs.getInt("number"));
+			//ADDING ENDORSEMENT VALUE FROM DATABASE
+		    newPost.setEndorsed(rs.getInt("endorsed"));
+			postDisplay.add(newPost);
+		}}
+		catch(SQLException e) {
+			e.printStackTrace();
 			return postDisplay;
-		}	
-		
+		}
+		return postDisplay;
+}
 
 	
 
@@ -1455,7 +1459,20 @@ public class Database {
 	        return false;
 	    }
 	}
-	
+
+	//STAFF ENDORSE POST METHOD CREATED BY JERRY
+public boolean endorsePost(int postID) {
+    String query = "UPDATE userPosts SET endorsed = 1 WHERE number = ?";
+    
+    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+        pstmt.setInt(1, postID);
+        return pstmt.executeUpdate() > 0;
+    }
+    catch(SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 	//HW2 Delete post
 	/*******
 	 * <p> Method: deletePost(post) </p>
