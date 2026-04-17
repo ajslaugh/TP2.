@@ -22,7 +22,6 @@ import javafx.scene.control.ListCell;
 import database.Database;
 import entityClasses.User;
 import entityClasses.Post;
-import javafx.scene.control.ComboBox;
 import java.util.ArrayList;
 
 //ViewPostDisplay Class
