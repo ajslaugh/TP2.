@@ -55,7 +55,8 @@ public class Post {
      */
     private int postID;
     
-    
+    //JERRY ADDING ENDORSEMENT FIELD
+	private int endorsed = 0;
     
     /*****
      * <p> Method: Post() </p>
@@ -158,6 +159,9 @@ public class Post {
      * 
      * @param s the new content of the post
      */
+
+	//JERRY SETTING ENDORSEMENT VALUE
+	public void setEndorsed(int e) { endorsed = e; }
     public void setContent(String s) { content = s; }
 
 	/**
@@ -201,10 +205,14 @@ public class Post {
 	* @param s the new post ID value
 	*/
     public void setID(int s) {postID = s;}
-
+//JERRY ADDED CHANGES TO toString
 	@Override 
-	public String toString() {
-    	return String.format("%s %s to %s thread: %s", role, author, thread, content);
-    	
-    }
+public String toString() {
+	//DISPLAY ENDORSED POSTS
+	if (endorsed == 1) {
+		return "[ENDORSED] " + String.format("%s %s to %s thread: %s", role, author, thread, content);
+	}
+
+	return String.format("%s %s to %s thread: %s", role, author, thread, content);
+}
 }
