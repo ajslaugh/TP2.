@@ -75,7 +75,15 @@ public class ViewPostDisplay{
 		protected static List<String> myUnread = new ArrayList<>();
 		protected static Button button_myPosts = new Button("My Posts");
 		protected static Button button_myUnread = new Button("Unread Replies");
+
+		// FLAG POST BUTTONS - KYLE
+		protected static Button button_FlagPost = new Button("Flag Post");
+		protected static Button button_ReviewFlaggedPosts = new Button("Review Flagged Posts");
 		
+		// FEEDBACK BUTTONS - KYLE
+		protected static Button button_SendFeedback = new Button("Send Feedback");
+		protected static Button button_ViewMyFeedback = new Button("View Feedback");
+	
 		// This is a separator and it is used to partition the GUI for various tasks
 		protected static Line line_Separator4 = new Line(20, 525, width-20,525);
 		
@@ -128,7 +136,15 @@ public class ViewPostDisplay{
 			label_UserDetails.setText("User: " + theUser.getUserName());
 			//patch
 			label_numReplies.setText("You have " + theDatabase.getUserUnread(theDatabase.getCurrentUsername()) + " unread replies.");
-					
+
+			// SHOW/HIDE MODERATION BUTTONS BASED ON ROLE - KYLE
+			// Only show flag and feedback buttons if user is Role2 (Staff)
+			boolean isStaff = theUser.getNewRole2();
+			button_FlagPost.setVisible(isStaff);
+			button_ReviewFlaggedPosts.setVisible(isStaff);
+			button_SendFeedback.setVisible(isStaff);
+			button_ViewMyFeedback.setVisible(isStaff);
+			
 			// Set the title for the window, display the page, and wait for the Admin to do something
 			theStage.setTitle("CSE 360 Foundations: Posts"); // ***MODIFIED*** Role1 -> Student									
 			theStage.setScene(theViewPostDisplayScene);
@@ -213,7 +229,24 @@ public class ViewPostDisplay{
 			button_myUnread.setOnAction((_) -> {
 				ControllerPostDisplay.showMyUnread();
 			});
+
+			// SEND FEEDBACK BUTTONS - KYLE
+			setupButtonUI(button_SendFeedback, "Dialog", 14, 140, Pos.CENTER, 20, 490);
+			button_SendFeedback.setStyle("-fx-text-fill: black; -fx-padding: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+			button_SendFeedback.setOnAction((_) -> { ControllerPostDisplay.performSendFeedback(); });
+
+			setupButtonUI(button_ViewMyFeedback, "Dialog", 14, 140, Pos.CENTER, 170, 490);
+			button_ViewMyFeedback.setStyle("-fx-text-fill: black; -fx-padding: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+			button_ViewMyFeedback.setOnAction((_) -> { ControllerPostDisplay.performViewMyFeedback(); });
 			
+			// FLAG POST BUTTONS - KYLE
+			setupButtonUI(button_FlagPost, "Dialog", 14, 150, Pos.CENTER, 320, 490);
+			button_FlagPost.setStyle("-fx-text-fill: black; -fx-padding: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+			button_FlagPost.setOnAction((_) -> { ControllerPostDisplay.performFlagPost(); });
+
+			setupButtonUI(button_ReviewFlaggedPosts, "Dialog", 14, 180, Pos.CENTER, 480, 490);
+			button_ReviewFlaggedPosts.setStyle("-fx-text-fill: black; -fx-padding: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+			button_ReviewFlaggedPosts.setOnAction((_) -> { ControllerPostDisplay.performReviewFlaggedPosts(); });
 			
 			//GUI Area 3
 		
@@ -274,6 +307,7 @@ public class ViewPostDisplay{
 				label_PageTitle, label_UserDetails, label_numReplies, line_Separator1,label_CreatePost,text_PostContent,button_Post,
 				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,label_myAccount,button_myPosts, button_myUnread,
 				text_SearchKeyword, button_Search, button_ClearSearch,
+				button_FlagPost, button_ReviewFlaggedPosts,button_SendFeedback, button_ViewMyFeedback,
 		        line_Separator2,displayPosts, line_Separator4, button_Home, button_Quit);
 	}
 		
