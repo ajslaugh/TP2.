@@ -76,6 +76,8 @@ public class ViewPostDisplay{
 		protected static Button button_myPosts = new Button("My Posts");
 		protected static Button button_myUnread = new Button("Unread Replies");
 
+		//ADDING THIS BUTTON FOR ENDORSMENT FUNCT jerry
+		protected static Button button_Endorse = new Button("Endorse Post");
 		// FLAG POST BUTTONS - KYLE
 		protected static Button button_FlagPost = new Button("Flag Post");
 		protected static Button button_ReviewFlaggedPosts = new Button("Review Flagged Posts");
@@ -137,9 +139,15 @@ public class ViewPostDisplay{
 			//patch
 			label_numReplies.setText("You have " + theDatabase.getUserUnread(theDatabase.getCurrentUsername()) + " unread replies.");
 
+
+			// ADDING BUTTON TO MAKE THE BUTTON ONLY VISIBLE TO STAFF - JERRY
 			// SHOW/HIDE MODERATION BUTTONS BASED ON ROLE - KYLE
 			// Only show flag and feedback buttons if user is Role2 (Staff)
 			boolean isStaff = theUser.getNewRole2();
+			//ADDING THESE SO THE BUTTON IS ONLY VISIBLE FOR STAFF jerry
+			button_Endorse.setVisible(isStaff);
+			button_Endorse.setManaged(isStaff);
+			
 			button_FlagPost.setVisible(isStaff);
 			button_ReviewFlaggedPosts.setVisible(isStaff);
 			button_SendFeedback.setVisible(isStaff);
@@ -230,6 +238,10 @@ public class ViewPostDisplay{
 				ControllerPostDisplay.showMyUnread();
 			});
 
+			//ADDED ENDORSE BUTTON SETUP jerry
+			setupButtonUI(button_Endorse, "Dialog", 16, 120, Pos.CENTER, 660, 405);
+			button_Endorse.setOnAction((_) -> { ControllerPostDisplay.performEndorsePost(); });
+
 			// SEND FEEDBACK BUTTONS - KYLE
 			setupButtonUI(button_SendFeedback, "Dialog", 14, 140, Pos.CENTER, 20, 490);
 			button_SendFeedback.setStyle("-fx-text-fill: black; -fx-padding: 5; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
@@ -306,7 +318,7 @@ public class ViewPostDisplay{
 	         theRootPane.getChildren().addAll(
 				label_PageTitle, label_UserDetails, label_numReplies, line_Separator1,label_CreatePost,text_PostContent,button_Post,
 				combobox_SelectPostThread,label_FilterThread,combobox_FilterThread,label_myAccount,button_myPosts, button_myUnread,
-				text_SearchKeyword, button_Search, button_ClearSearch,
+				text_SearchKeyword, button_Search, button_ClearSearch, button_Endorse, //JERRY ADDED ENDORSE BUTTON TO DISPLAY
 				button_FlagPost, button_ReviewFlaggedPosts,button_SendFeedback, button_ViewMyFeedback,
 		        line_Separator2,displayPosts, line_Separator4, button_Home, button_Quit);
 	}
