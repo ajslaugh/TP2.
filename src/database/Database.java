@@ -243,6 +243,22 @@ public class Database {
 		        + "SELECT 1 FROM threadTypes WHERE thread_name = 'General'"
 		        +")"
 		        );
+
+			// MODIFIED TP3 Brenna -- creates postGrades table for grading system
+			String gradingTable = "CREATE TABLE IF NOT EXISTS postGrades ("
+			    + "gradeID INT AUTO_INCREMENT PRIMARY KEY, "
+			    + "postID INT NOT NULL, "
+			    + "studentUsername VARCHAR(255), "
+			    + "points INT DEFAULT 0, "
+			    + "gradedBy VARCHAR(255), "
+			    + "FOREIGN KEY (postID) REFERENCES userPosts(number)"
+			    + ")";
+			try {
+			    statement.execute(gradingTable);
+			} catch (SQLException e) {
+			    System.out.println("postGrades table may already exist: " + e.getMessage());
+			}
+		
 	}
 
 /*******
@@ -2449,4 +2465,119 @@ public boolean endorsePost(int postID) {
 		}
 		return 0;
 	}
+
+	//GRADING METHODS - BRENNA
+	/*******
+	 * <p> Method: setPostGrade(int postID, String studentUsername, int points, String gradedBy) </p>
+	 *
+	 * <p> Description: Saves or updates a point value for a specific post.
+	 * If a grade already exists for this postID it is updated (MERGE).
+	 * If no grade exists yet, a new row is inserted. </p>
+	 *
+	 * @param postID          the unique ID of the post being graded
+	 * @param studentUsername the username of the student who wrote the post
+	 * @param points          the number of points assigned (must be >= 0)
+	 * @param gradedBy        the username of the staff member assigning the grade
+	 *
+	 * @return true if the save succeeded, false if a database error occurred
+	 *
+	 * <p> Tested by: GradingDisplayTest.testSetPostGrade() </p>
+	 */
+	public boolean setPostGrade(int postID, String studentUsername, int points, String gradedBy) {
+	    // H2 supports MERGE which acts as INSERT-or-UPDATE in one statement.
+	    // KEY(postID) means: if a row with this postID already exists, UPDATE it;
+	    // otherwise INSERT a new row.
+	    String query = "MERGE INTO postGrades (postID, studentUsername, points, gradedBy) "
+	        + "KEY(postID) VALUES (?, ?, ?, ?)";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setInt(1, postID);
+	        pstmt.setString(2, studentUsername);
+	        pstmt.setInt(3, points);
+	        pstmt.setString(4, gradedBy);
+	        pstmt.executeUpdate();
+	        return true;
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        return false;
+	    }
+	}
+
+	/*******
+	 * <p> Method: getPostsByStudent(String username) </p>
+	 *
+	 * <p> Description: Retrieves all posts written by a specific student,
+	 * joined with any existing grade for each post. If a post has not been
+	 * graded yet, the points column will be 0. This is used to populate
+	 * the grading table on the GradingDisplay page. </p>
+	 *
+	 * @param username the username of the student whose posts to load
+	 *
+	 * @return a List of String arrays, one per post.
+	 *         Each array contains: [postID, postContent, thread, points]
+	 *
+	 * <p> Tested by: GradingDisplayTest.testGetPostsByStudent() </p>
+	 */
+	public List<String[]> getPostsByStudent(String username) {
+	    List<String[]> posts = new ArrayList<>();
+
+	    // LEFT JOIN means we get every post even if it has no grade yet.
+	    // COALESCE(g.points, 0) means: use the grade if it exists, else default to 0.
+	    String query = "SELECT p.number, p.post, p.thread, COALESCE(g.points, 0) AS points "
+	        + "FROM userPosts p "
+	        + "LEFT JOIN postGrades g ON p.number = g.postID "
+	        + "WHERE p.username = ? "
+	        + "ORDER BY p.number ASC";
+
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+	        while (rs.next()) {
+	            // Store the four values we need for each row in the grading table
+	            String[] row = new String[4];
+	            row[0] = String.valueOf(rs.getInt("number"));    // postID
+	            row[1] = rs.getString("post");                   // post content
+	            row[2] = rs.getString("thread");                 // thread name
+	            row[3] = String.valueOf(rs.getInt("points"));    // current grade
+	            posts.add(row);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return posts;
+	}
+
+	/*******
+	 * <p> Method: getTotalPointsByStudent(String username) </p>
+	 *
+	 * <p> Description: Sums all graded points for a given student across
+	 * all their posts. This is displayed as the "Total Points" on the
+	 * grading page so staff do not have to add manually. </p>
+	 *
+	 * @param username the username of the student
+	 *
+	 * @return the total points awarded to this student (0 if none graded yet)
+	 *
+	 * <p> Tested by: GradingDisplayTest.testGetTotalPointsByStudent() </p>
+	 */
+	public int getTotalPointsByStudent(String username) {
+	    // SUM all points in postGrades where the student matches.
+	    // COALESCE handles the case where no rows exist yet (SUM of nothing = null).
+	    String query = "SELECT COALESCE(SUM(g.points), 0) AS total "
+	        + "FROM postGrades g "
+	        + "WHERE g.studentUsername = ?";
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        pstmt.setString(1, username);
+	        ResultSet rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getInt("total");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return 0;
+	}
+}
+	
+
+	
 }
