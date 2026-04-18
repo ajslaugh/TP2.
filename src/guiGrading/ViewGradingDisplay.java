@@ -44,9 +44,7 @@ import java.util.List;
 	 */
 	public class ViewGradingDisplay {
 
-	    // ----------------------------------------------------------------
-	    // Window dimensions — same source as every other View in the project
-	    // ----------------------------------------------------------------
+	 
 	    private static double width  = applicationMain.FoundationsMain.WINDOW_WIDTH;
 	    private static double height = applicationMain.FoundationsMain.WINDOW_HEIGHT;
 
@@ -101,10 +99,6 @@ import java.util.List;
 	    /** Quits the application — consistent with every other page. */
 	    protected static Button button_Quit = new Button("Quit");
 
-	    // ----------------------------------------------------------------
-	    // Internal state — same pattern as ViewRole2Home
-	    // ----------------------------------------------------------------
-
 	    /** Singleton guard — the constructor only runs once. */
 	    private static ViewGradingDisplay theView;
 
@@ -128,10 +122,6 @@ import java.util.List;
 
 	    /** The Scene for this page — created once, reused on each visit. */
 	    private static Scene theGradingScene;
-
-	    // ----------------------------------------------------------------
-	    // Entry point — called from ControllerRole2Home.openEvaluationPage
-	    // ----------------------------------------------------------------
 
 	    /*******
 	     * <p> Method: displayGrading(Stage ps, User user, String student) </p>
@@ -175,9 +165,8 @@ import java.util.List;
 	        theStage.show();
 	    }
 
-	    // ----------------------------------------------------------------
-	    // Constructor — private singleton, only runs once
-	    // ----------------------------------------------------------------
+	    // Constructor 
+	
 
 	    /*******
 	     * <p> Method: ViewGradingDisplay() </p>
@@ -296,10 +285,7 @@ import java.util.List;
 	        );
 	    }
 
-	    // ----------------------------------------------------------------
-	    // Private helpers called by the constructor's event handlers
-	    // ----------------------------------------------------------------
-
+	
 	    /*******
 	     * <p> Method: refreshTable(String student) </p>
 	     *
@@ -335,7 +321,7 @@ import java.util.List;
 	     */
 	    private static void performSaveGrades() {
 
-	        // Track how many saves succeeded so we can report in the alert
+	        // Track how many saves succeeded 
 	        int saved   = 0;
 	        int skipped = 0;
 
@@ -344,7 +330,7 @@ import java.util.List;
 	            int postID;
 	            int points;
 
-	            // Safely parse postID — should always be a valid integer, but guard anyway
+	            // Safely parse postID 
 	            try {
 	                postID = Integer.parseInt(row[0]);
 	            } catch (NumberFormatException e) {
@@ -352,8 +338,7 @@ import java.util.List;
 	                continue; // skip malformed rows silently
 	            }
 
-	            // Safely parse points — the edit handler already validated these,
-	            // but parseInt can still fail if something unexpected slipped through
+	            // Safely parse points 
 	            try {
 	                points = Integer.parseInt(row[3]);
 	            } catch (NumberFormatException e) {
@@ -426,9 +411,7 @@ import java.util.List;
 	        alert.showAndWait();
 	    }
 
-	    // ----------------------------------------------------------------
-	    // Standard helper methods — same in every View in the project
-	    // ----------------------------------------------------------------
+		//Helper methods
 
 	    /*******
 	     * <p> Method: setupLabelUI(...) </p>
