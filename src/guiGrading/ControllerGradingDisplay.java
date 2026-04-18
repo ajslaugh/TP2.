@@ -7,10 +7,7 @@ import java.util.List;
 /*******
  * <p> Title: ControllerGradingDisplay Class </p>
  *
- * <p> Description: The Controller for the Grading Display page. Follows the
- * exact same pattern as ControllerRole2Home and ControllerPostDisplay:
- * all methods are protected and static, the class is never instantiated,
- * and it acts as the bridge between ViewGradingDisplay and the Database. </p>
+ * <p> Description: The Controller for the Grading Display page. </p>
  *
  * <p> This controller handles three responsibilities:
  *   1. Loading all posts written by a selected student
@@ -23,14 +20,10 @@ import java.util.List;
  *
  * @author Brenna
  *
- * @version 1.00    TP3 Initial version
+ * @version 1.00   
  */
 public class ControllerGradingDisplay {
 
-    // ----------------------------------------------------------------
-    // Reference to the shared database — same pattern used in every
-    // other controller in this project.
-    // ----------------------------------------------------------------
     protected static Database theDatabase = applicationMain.FoundationsMain.database;
 
     /*******
@@ -42,10 +35,7 @@ public class ControllerGradingDisplay {
     public ControllerGradingDisplay() {
     }
 
-    // ----------------------------------------------------------------
-    // LOAD
-    // ----------------------------------------------------------------
-
+   
     /*******
      * <p> Method: loadPostsForStudent(String username) </p>
      *
@@ -82,10 +72,6 @@ public class ControllerGradingDisplay {
         // so we get both the post content and any existing grade in one call.
         return theDatabase.getPostsByStudent(username);
     }
-
-    // ----------------------------------------------------------------
-    // SAVE / UPDATE
-    // ----------------------------------------------------------------
 
     /*******
      * <p> Method: assignGrade(int postID, String studentUsername,
@@ -152,10 +138,7 @@ public class ControllerGradingDisplay {
         return theDatabase.setPostGrade(postID, studentUsername, points, gradedBy);
     }
 
-    // ----------------------------------------------------------------
-    // CALCULATE TOTAL
-    // ----------------------------------------------------------------
-
+  
     /*******
      * <p> Method: calculateTotal(String username) </p>
      *
@@ -181,10 +164,6 @@ public class ControllerGradingDisplay {
 
         return theDatabase.getTotalPointsByStudent(username);
     }
-
-    // ----------------------------------------------------------------
-    // NAVIGATION
-    // ----------------------------------------------------------------
 
     /*******
      * <p> Method: performBack() </p>
@@ -216,9 +195,7 @@ public class ControllerGradingDisplay {
         System.exit(0);
     }
 
-    // ----------------------------------------------------------------
-    // PRIVATE HELPERS
-    // ----------------------------------------------------------------
+    // HELPERS
 
     /*******
      * <p> Method: showError(String header, String message) </p>
