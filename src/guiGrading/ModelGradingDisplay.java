@@ -21,11 +21,9 @@ public class ModelGradingDisplay {
      * <p> Method: ModelGradingDisplay() </p>
      *
      * <p> Description: Default constructor. Not used — this class is a stub
-     * consistent with the project's MVC pattern. </p>
+     *  </p>
      */
     public ModelGradingDisplay() {
-        // No initialization needed at this time.
-        // Reserved for future grading logic such as grade calculations
-        // or rubric management that may be added in a later sprint.
+   
     }
 }
