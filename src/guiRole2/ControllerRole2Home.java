@@ -122,8 +122,6 @@ public class ControllerRole2Home {
         List<String> students = theDatabase.getStudentList();
         //theDatabase.debugPrintColumns();
 
-
-
         if (students.isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("No Students");
@@ -132,12 +130,17 @@ public class ControllerRole2Home {
             alert.showAndWait();
             return;
         }
+		
 		Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Students");
+		dialog.setHeaderText("Choose a student to grade:");
+
+		dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
 
         // ListView for clickable students
         ListView<String> listView = new ListView<>();
         listView.getItems().addAll(students);
+		listView.setPrefSize(300, 400);
 
         // Double-click support
         listView.setOnMouseClicked(event -> {
@@ -198,12 +201,13 @@ public class ControllerRole2Home {
 	 */
 	 
 	private static void openEvaluationPage(String student) {
-        // TODO: Replace with your actual grading UI
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Evaluate Student");
-        alert.setHeaderText("Evaluation Page Placeholder");
-        alert.setContentText("Here you will grade: " + student);
-        alert.showAndWait();
+        // Navigate to the grading page — passes stage, user, and selected student.
+        // ViewGradingDisplay will load that student's posts from the database.
+        guiGrading.ViewGradingDisplay.displayGrading(
+            ViewRole2Home.theStage,
+            ViewRole2Home.theUser,
+            student
+        );
     } 
 
 
