@@ -4,6 +4,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -20,6 +22,12 @@ import javafx.beans.property.SimpleStringProperty;
 import database.Database;
 import entityClasses.User;
 import java.util.List;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.scene.control.ButtonBar;
+
 
 	
 	/*******
@@ -242,8 +250,55 @@ import java.util.List;
 	            updateTotalLabel();
 	        });
 
-	        // Add all four columns to the table
-	        table_Posts.getColumns().addAll(col_PostID, col_Content, col_Thread, col_Points);
+	        // Column 5: Feedback button — one per row so staff can leave
+	        // written feedback on any specific post directly from the table.
+	        
+	        TableColumn<String[], Void> col_Feedback = new TableColumn<>("Feedback");
+	        col_Feedback.setPrefWidth(100);
+	        col_Feedback.setEditable(false); // the button handles its own interaction
+	 
+	        col_Feedback.setCellFactory(column -> new TableCell<String[], Void>() {
+	 
+	            // Each cell gets its own Button instance
+	            private final Button feedbackBtn = new Button("Add Note");
+	 
+	            {
+	                // When staff clicks "Add Note" on a row, open the feedback dialog
+	                feedbackBtn.setOnAction(event -> {
+	 
+	                    // Get the data row this button belongs to
+	                    // getIndex() tells us which row we're in
+	                    String[] row = getTableView().getItems().get(getIndex());
+	 
+	                    // row[0] = postID, row[1] = post content
+	                    int postID;
+	                    try {
+	                        postID = Integer.parseInt(row[0]);
+	                    } catch (NumberFormatException e) {
+	                        return; // malformed row — skip silently
+	                    }
+	 
+	                    // Open a dialog for staff to type their feedback
+	                    showFeedbackDialog(postID, row[1]);
+	                });
+	            }
+	 
+	            @Override
+	            protected void updateItem(Void item, boolean empty) {
+	                super.updateItem(item, empty);
+	                // Only show the button for rows that have actual data,
+	                // not for the empty rows at the bottom of the table
+	                if (empty) {
+	                    setGraphic(null);
+	                } else {
+	                    setGraphic(feedbackBtn);
+	                }
+	            }
+	        });
+	 
+	        // Add ALL five columns including the new feedback column
+	        table_Posts.getColumns().addAll(
+	            col_PostID, col_Content, col_Thread, col_Points, col_Feedback);
 
 	        // Bind the observable data list to the table
 	        table_Posts.setItems(postData);
@@ -394,6 +449,85 @@ import java.util.List;
 	        label_Total.setText("Total Points: " + total);
 	    }
 
+		/*******
+	     * <p> Method: showFeedbackDialog(int postID, String postContent) </p>
+	     *
+	     * <p> Description: Opens a dialog with a text area where staff can
+	     * type written feedback for a specific post. When the staff member
+	     * clicks Save, the feedback is validated and saved via the controller.
+	     * If the save succeeds, a confirmation alert is shown.
+	     * Called when staff clicks the "Add Note" button on a post row. </p>
+	     *
+	     * @param postID      the ID of the post receiving feedback
+	     * @param postContent the text of the post, shown in the dialog header
+	     *                    so staff can see what they are commenting on
+	     */
+	    private static void showFeedbackDialog(int postID, String postContent) {
+	 
+	        // Build the dialog
+	        Dialog<String> dialog = new Dialog<>();
+	        dialog.setTitle("Leave Feedback");
+	 
+	        // Show a truncated preview of the post so staff knows which post
+	        // they are commenting on without having to remember the ID
+	        String preview = postContent.length() > 60
+	            ? postContent.substring(0, 60) + "..."
+	            : postContent;
+	        dialog.setHeaderText("Feedback for post #" + postID + ":\n\"" + preview + "\"");
+	 
+	        // Save and Cancel buttons
+	        ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+	        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+	 
+	        // Text area where staff types their feedback
+	        TextArea textArea = new TextArea();
+	        textArea.setPromptText("Type your feedback here...");
+	        textArea.setWrapText(true);       // wrap long lines
+	        textArea.setPrefRowCount(5);      // show 5 lines of height
+	        textArea.setPrefWidth(400);
+	 
+	        // Wrap in a VBox with padding so the text area isn't flush to the edges
+	        VBox content = new VBox(10);
+	        content.setPadding(new Insets(10));
+	        content.getChildren().add(textArea);
+	 
+	        dialog.getDialogPane().setContent(content);
+	 
+	        // Focus the text area when dialog opens so staff can start typing immediately
+	        javafx.application.Platform.runLater(textArea::requestFocus);
+	 
+	        // Convert the result to the text string when Save is clicked
+	        dialog.setResultConverter(buttonType -> {
+	            if (buttonType == saveButton) {
+	                return textArea.getText();
+	            }
+	            return null; // cancelled
+	        });
+	 
+	        // Show dialog and handle result
+	        dialog.showAndWait().ifPresent(feedbackText -> {
+	 
+	            // Delegate to controller which validates and saves
+	            boolean success = ControllerGradingDisplay.submitFeedback(
+	                postID,
+	                currentStudent,           // the student being graded
+	                feedbackText,
+	                theUser.getUserName()     // the logged-in staff member
+	            );
+	 
+	            if (success) {
+	                // Confirm to staff that feedback was saved
+	                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+	                alert.setTitle("Feedback");
+	                alert.setHeaderText("Feedback Saved");
+	                alert.setContentText("Your feedback for post #" + postID
+	                    + " has been saved successfully.");
+	                alert.showAndWait();
+	            }
+	            // If it failed, the controller already showed an error alert
+	        });
+	    }
+
 	    /*******
 	     * <p> Method: showError(String header, String message) </p>
 	     *
@@ -410,6 +544,8 @@ import java.util.List;
 	        alert.setContentText(message);
 	        alert.showAndWait();
 	    }
+
+		
 
 		//Helper methods
 
