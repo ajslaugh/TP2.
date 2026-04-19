@@ -25,6 +25,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
 
 /*******
  * <p> Title: ControllerRole2Home Class. </p>
@@ -160,6 +162,77 @@ public class ControllerRole2Home {
         String selectedStudent = result.get();
         showStudentOptions(selectedStudent);
    }
+
+	/*******
+     * <p> Method: performViewGradeSummary() </p>
+     *
+     * <p> Description: Displays a popup dialog showing a grade summary table
+     * for all students. Each row shows the student's username, total number
+     * of posts, total points awarded, and average points per post.
+     * Students are sorted highest points first.
+     * Called when the staff member clicks "Grade Summary" on the staff home page. </p>
+     *
+     */
+    protected static void performViewGradeSummary() {
+     
+        // Fetch the summary data from the database
+        List<String[]> summary = theDatabase.getGradeSummaryAllStudents();
+     
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Grade Summary");
+        dialog.setHeaderText("Grade Summary — All Students");
+     
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+        
+        TableView<String[]> table = new TableView<>();
+        table.setPrefSize(550, 400);
+     
+        // Column 1: Student Username
+        TableColumn<String[], String> col_Student = new TableColumn<>("Student");
+        col_Student.setPrefWidth(180);
+        col_Student.setCellValueFactory(data ->
+            new javafx.beans.property.SimpleStringProperty(data.getValue()[0]));
+     
+        // Column 2: Total Posts
+        TableColumn<String[], String> col_Posts = new TableColumn<>("Total Posts");
+        col_Posts.setPrefWidth(100);
+        col_Posts.setCellValueFactory(data ->
+            new javafx.beans.property.SimpleStringProperty(data.getValue()[1]));
+     
+        // Column 3: Total Points
+        TableColumn<String[], String> col_Points = new TableColumn<>("Total Points");
+        col_Points.setPrefWidth(110);
+        col_Points.setCellValueFactory(data ->
+            new javafx.beans.property.SimpleStringProperty(data.getValue()[2]));
+     
+        // Column 4: Average Points Per Post
+        TableColumn<String[], String> col_Avg = new TableColumn<>("Avg Per Post");
+        col_Avg.setPrefWidth(110);
+        col_Avg.setCellValueFactory(data ->
+            new javafx.beans.property.SimpleStringProperty(data.getValue()[3]));
+     
+        // Add all columns to the table
+        table.getColumns().addAll(col_Student, col_Posts, col_Points, col_Avg);
+     
+        // Populate the table with data
+        if (summary.isEmpty()) {
+            // No students have posts yet — show a placeholder message
+            dialog.setHeaderText("Grade Summary — No student posts found yet.");
+        } else {
+            javafx.collections.ObservableList<String[]> data =
+                javafx.collections.FXCollections.observableArrayList(summary);
+            table.setItems(data);
+        }
+     
+       
+        table.setEditable(false);
+     
+        // Put the table inside the dialog
+        dialog.getDialogPane().setContent(table);
+     
+        // Show and wait
+        dialog.showAndWait();
+    }
     
     private static void showStudentOptions(String student) {
         Dialog<Void> dialog = new Dialog<>();
