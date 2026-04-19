@@ -2577,6 +2577,64 @@ public boolean endorsePost(int postID) {
 	    return 0;
 	}
 }
+
+/*******
+	 * <p> Method: getGradeSummaryAllStudents() </p>
+	 *
+	 * <p> Description: Retrieves a grade summary for every student in the
+	 * system. For each student, returns their username, total number of
+	 * posts, total points awarded across all graded posts, and the average
+	 * points per post. Students with no posts are excluded.
+	 * Used to populate the Grade Summary dialog on the staff home page. </p>
+	 *
+	 * @return a List of String arrays, one per student.
+	 *         Each array contains:
+	 *         [0] studentUsername
+	 *         [1] totalPosts    (total posts written by this student)
+	 *         [2] totalPoints   (sum of all graded points, 0 if none graded)
+	 *         [3] average       (totalPoints / totalPosts, formatted to 1 decimal)
+	 *
+	 */
+	public List<String[]> getGradeSummaryAllStudents() {
+	    List<String[]> summary = new ArrayList<>();
+
+	    String query = "SELECT p.username, "
+	        + "COUNT(p.number) AS totalPosts, "
+	        + "COALESCE(SUM(g.points), 0) AS totalPoints "
+	        + "FROM userPosts p "
+	        + "LEFT JOIN postGrades g ON p.number = g.postID "
+	        + "JOIN userDB u ON p.username = u.userName "
+	        + "WHERE u.newRole1 = TRUE "
+	        + "GROUP BY p.username "
+	        + "ORDER BY totalPoints DESC";  
+	 
+	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+	        ResultSet rs = pstmt.executeQuery();
+	        while (rs.next()) {
+	            String[] row = new String[4];
+	            row[0] = rs.getString("username");          // student name
+	 
+	            int totalPosts  = rs.getInt("totalPosts");
+	            int totalPoints = rs.getInt("totalPoints");
+	 
+	            row[1] = String.valueOf(totalPosts);         // total posts
+	            row[2] = String.valueOf(totalPoints);        // total points
+	 
+	            // Calculate average 
+	            if (totalPosts > 0) {
+	                double avg = (double) totalPoints / totalPosts;
+	                row[3] = String.format("%.1f", avg);     
+	            } else {
+	                row[3] = "0.0";
+	            }
+	 
+	            summary.add(row);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return summary;
+	}
 	
 
 	
