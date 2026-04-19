@@ -138,6 +138,55 @@ public class ControllerGradingDisplay {
         return theDatabase.setPostGrade(postID, studentUsername, points, gradedBy);
     }
 
+    /*******
+     * <p> Method: submitFeedback(int postID, String toStudent,
+     *                             String feedbackText, String fromStaff) </p>
+     *
+     * <p> Description: Validates the feedback text and saves it to the
+     * Feedback table via the existing submitFeedback() database method.
+     * Called when staff clicks the Feedback button on a post row in the
+     * grading table and submits their written comment.</p>
+     *
+     * @param postID       the ID of the post the feedback is about
+     * @param toStudent    the username of the student receiving feedback
+     * @param feedbackText the written feedback from the staff member
+     * @param fromStaff    the username of the staff member giving feedback
+     *
+     * @return true if feedback was saved successfully, false otherwise
+     */
+    protected static boolean submitFeedback(int postID, String toStudent,
+                                             String feedbackText, String fromStaff) {
+     
+        // Validate feedback text — must not be null or blank
+        if (feedbackText == null || feedbackText.trim().isEmpty()) {
+            showError("Empty Feedback",
+                "ERROR: Cannot save — feedback text cannot be empty.");
+            return false;
+        }
+     
+        // Validate student username
+        if (toStudent == null || toStudent.trim().isEmpty()) {
+            showError("Missing Student",
+                "ERROR: Cannot save — no student username was provided.");
+            return false;
+        }
+     
+        // Validate postID
+        if (postID <= 0) {
+            showError("Invalid Post",
+                "ERROR: Cannot save — postID must be greater than 0.");
+            return false;
+        }
+     
+        return theDatabase.submitFeedback(
+            fromStaff,         // fromUser
+            toStudent,         // toUser
+            feedbackText,      // content
+            postID,            // targetPostID
+            "GRADE_FEEDBACK"   // feedbackType
+        );
+    }
+
   
     /*******
      * <p> Method: calculateTotal(String username) </p>
