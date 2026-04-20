@@ -2635,6 +2635,16 @@ public boolean endorsePost(int postID) {
 	    return summary;
 	}
 	
+	//***TP3 MODIFIED FOR TESTS***
 
+	// Used only by test classes to reset the database between tests
+	public void dropAllObjects() throws SQLException {
+	    statement.execute("DROP ALL OBJECTS");
+	}
+
+	// Used only by test classes to recreate tables after a drop
+	public void createTablesPublic() throws SQLException {
+	    createTables();
+	}
 	
 }
