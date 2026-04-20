@@ -129,10 +129,7 @@ public class ViewPostDisplay{
 			// state of the system.
 			theDatabase.getUserAccountDetails(user.getUserName());
 			
-			//will need to update later
-			theRole = 2;
-
-			applicationMain.FoundationsMain.activeHomePage = theRole;
+			theRole = applicationMain.FoundationsMain.activeHomePage;
 			
 			label_UserDetails.setText("User: " + theUser.getUserName());
 			//patch
