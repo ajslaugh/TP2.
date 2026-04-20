@@ -257,9 +257,13 @@ public class ControllerGradingDisplay {
      * @param message the detailed message explaining what went wrong
      */
     private static void showError(String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
+        if (javafx.application.Platform.isFxApplicationThread()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(header);
+            alert.setContentText(message);
+            alert.showAndWait();
+        } else {
+            System.err.println("VALIDATION ERROR — " + header + ": " + message);
+        }
     }
 }
