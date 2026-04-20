@@ -17,7 +17,8 @@ public class ThreadType {
     private int id;
     private String name;
     private String description;
-    private String status;
+    private String status; // used to determine whether the thread is open for posting or archived
+
 
     /*****
      * <p> Method: ThreadType() </p>
