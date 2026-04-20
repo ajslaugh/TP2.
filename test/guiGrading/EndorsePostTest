@@ -1,0 +1,79 @@
+package guiGrading;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.sql.SQLException;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import database.Database;
+import entityClasses.Post;
+
+/*******
+ * <p> Title: EndorsePostTest </p>
+ *
+ * <p> Description: JUnit 5 test class for the endorsePost method
+ * in the Database class. Tests basic valid and invalid cases. </p>
+ *
+ * @author Jerry
+ * @version 1.0
+ */
+public class EndorsePostTest {
+
+    private Database db;
+    private int testPostId;
+
+    /*******
+     * <p> Method: setUp() </p>
+     *
+     * <p> Description: Runs before every test. Creates a database
+     * connection and inserts one test post. </p>
+     */
+    @BeforeEach
+    public void setUp() throws SQLException {
+        db = new Database();
+        db.connectToDatabase();
+
+        Post post = new Post("testStudent", "STUDENT", "This is a test post", "General");
+        testPostId = db.addPost(post);
+
+        assertTrue(testPostId > 0, "Test post should be inserted successfully");
+    }
+
+    /*******
+     * <p> Method: testEndorsePost_Valid() </p>
+     *
+     * <p> Description: Validates that endorsePost returns true
+     * when given a valid post ID. </p>
+     */
+    @Test
+    public void testEndorsePost_Valid() {
+        boolean result = db.endorsePost(testPostId);
+        assertTrue(result, "endorsePost should return true for a valid post ID");
+    }
+
+    /*******
+     * <p> Method: testEndorsePost_InvalidPostID() </p>
+     *
+     * <p> Description: Validates that endorsePost returns false
+     * when given an invalid post ID. </p>
+     */
+    @Test
+    public void testEndorsePost_InvalidPostID() {
+        boolean result = db.endorsePost(-1);
+        assertFalse(result, "endorsePost should return false for an invalid post ID");
+    }
+
+    /*******
+     * <p> Method: testEndorsePost_ZeroPostID() </p>
+     *
+     * <p> Description: Validates that endorsePost returns false
+     * when given 0 as a post ID. </p>
+     */
+    @Test
+    public void testEndorsePost_ZeroPostID() {
+        boolean result = db.endorsePost(0);
+        assertFalse(result, "endorsePost should return false for post ID 0");
+    }
+}
