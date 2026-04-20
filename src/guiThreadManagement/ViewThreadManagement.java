@@ -37,8 +37,10 @@ public class ViewThreadManagement {
     protected static Label label_ThreadName = new Label("Thread Name:");
     protected static Label label_ThreadDescription = new Label("Description:");
 
+    // displays all threads with enough detail for staff to identify the correct record before editing
     protected static ListView<ThreadType> list_Threads = new ListView<>();
-
+    
+    // input fields used for both creating new threads and editing selected ones
     protected static TextField text_ThreadName = new TextField();
     protected static TextField text_ThreadDescription = new TextField();
 
@@ -51,10 +53,13 @@ public class ViewThreadManagement {
 
     protected static Button button_Home = new Button("Return Home");
     protected static Button button_Quit = new Button("Quit");
-
+    
+    // singleton reference so the page layout is only created once and reused across navigation
     private static ViewThreadManagement theView;
+    // shared database reference used to retrieve and update thread data
     private static Database theDatabase = applicationMain.FoundationsMain.database;
 
+    // store the current stage and user so this page can support navigation and controller actions
     protected static Stage theStage;
     protected static Pane theRootPane;
     protected static User theUser;
@@ -73,9 +78,11 @@ public class ViewThreadManagement {
     public static void displayThreadManagement(Stage ps, User user) {
         theStage = ps;
         theUser = user;
-
+        
+        // build the static page layout only once, then reuse it for later visits
         if (theView == null) theView = new ViewThreadManagement();
 
+        // refresh displayed user information each time the page opens in case account details changed
         theDatabase.getUserAccountDetails(user.getUserName());
         label_UserDetails.setText("User: " + theUser.getUserName());
 
@@ -83,15 +90,21 @@ public class ViewThreadManagement {
         theStage.setScene(theThreadManagementScene);
         theStage.show();
 
+        // always reload threads when the page opens so the list matches the current database state
         ControllerThreadManagement.refreshThreadList();
     }
 
     /**********
      * <p> Method: ViewThreadManagement() </p>
      * 
-     * <p> Description: Initializes all GUI components for the thread management page. </p>
+     * <p> Description: Initializes all GUI components for the thread management page.
+     * This constructor defines the static layout, styling, and event handlers used
+     * whenever the page is displayed. </p>
+     * 
+     * <p> Test: Manual Test Required (GUI Layout and Navigation) </p>
      */
     private ViewThreadManagement() {
+        // create the root pane and scene once so the page can be reused during navigation
         theRootPane = new Pane();
         theThreadManagementScene = new Scene(theRootPane, width, height);
 
@@ -105,6 +118,7 @@ public class ViewThreadManagement {
         setupTextUI(text_ThreadName, "Arial", 14, 180, Pos.BASELINE_LEFT, 130, 180, true);
         setupTextUI(text_ThreadDescription, "Arial", 14, 180, Pos.BASELINE_LEFT, 130, 220, true);
 
+        // prompt text helps distinguish empty input fields from populated thread values
         text_ThreadName.setPromptText("Enter thread name");
         text_ThreadDescription.setPromptText("Enter description");
 
