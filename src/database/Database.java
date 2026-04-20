@@ -2576,7 +2576,6 @@ public boolean endorsePost(int postID) {
 	    }
 	    return 0;
 	}
-}
 
 /*******
 	 * <p> Method: getGradeSummaryAllStudents() </p>
