@@ -1,0 +1,54 @@
+package guiGrading;
+
+import database.Database;
+import entityClasses.Post;
+
+/*******
+ * <p> Title: EndorsePostManualTest </p>
+ *
+ * <p> Description: Manual test for endorsePost method.
+ * Prints results to console. </p>
+ */
+public class EndorsePostManualTest {
+
+    public static void main(String[] args) {
+        try {
+            Database db = new Database();
+            db.connectToDatabase();
+
+            /**
+             * <p> Step 1: Create a post </p>
+             */
+            Post post = new Post("testStudent", "STUDENT", "Manual test post", "General");
+            db.addPost(post);
+
+            /**
+             * <p> Step 2: Retrieve a valid post ID </p>
+             */
+            int postId = db.getNumberOfPosts();
+
+            System.out.println("Created Post ID: " + postId);
+
+            /**
+             * <p> Step 3: Try valid endorsement </p>
+             */
+            boolean success = db.endorsePost(postId);
+            System.out.println("Endorse valid post: " + success);
+
+            /**
+             * <p> Step 4: Try invalid endorsement </p>
+             */
+            boolean invalid = db.endorsePost(-1);
+            System.out.println("Endorse invalid post (-1): " + invalid);
+
+            /**
+             * <p> Step 5: Try zero ID </p>
+             */
+            boolean zero = db.endorsePost(0);
+            System.out.println("Endorse post (0): " + zero);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
