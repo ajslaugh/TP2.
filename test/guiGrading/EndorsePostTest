@@ -10,25 +10,32 @@ import org.junit.jupiter.api.Test;
 import database.Database;
 import entityClasses.Post;
 
-/*******
- * <p> Title: EndorsePostTest </p>
+/**
+ * <p>Title: EndorsePostTest</p>
  *
- * <p> Description: JUnit 5 test class for the endorsePost method
- * in the Database class. Tests basic valid and invalid cases. </p>
+ * <p>Description: JUnit 5 test class for the endorsePost method in the Database class.
+ * Tests valid and invalid post ID cases.</p>
+ *
+ * <p>This test verifies that a valid post ID returns true, and invalid or zero post IDs return false.</p>
  *
  * @author Jerry
  * @version 1.0
  */
 public class EndorsePostTest {
 
+    /** <p>Database instance used for testing</p> */
     private Database db;
+
+    /** <p>Stores the ID of the test post created in setup</p> */
     private int testPostId;
 
-    /*******
-     * <p> Method: setUp() </p>
+    /**
+     * <p>Method: setUp()</p>
      *
-     * <p> Description: Runs before every test. Creates a database
-     * connection and inserts one test post. </p>
+     * <p>Description: Runs before each test. Creates a database connection,
+     * inserts a test post, and retrieves a valid post ID.</p>
+     *
+     * @throws SQLException if a database error occurs
      */
     @BeforeEach
     public void setUp() throws SQLException {
@@ -36,16 +43,16 @@ public class EndorsePostTest {
         db.connectToDatabase();
 
         Post post = new Post("testStudent", "STUDENT", "This is a test post", "General");
-        testPostId = db.addPost(post);
+        db.addPost(post);
 
+        testPostId = db.getNumberOfPosts();
         assertTrue(testPostId > 0, "Test post should be inserted successfully");
     }
 
-    /*******
-     * <p> Method: testEndorsePost_Valid() </p>
+    /**
+     * <p>Method: testEndorsePost_Valid()</p>
      *
-     * <p> Description: Validates that endorsePost returns true
-     * when given a valid post ID. </p>
+     * <p>Description: Verifies that endorsePost returns true for a valid post ID.</p>
      */
     @Test
     public void testEndorsePost_Valid() {
@@ -53,11 +60,10 @@ public class EndorsePostTest {
         assertTrue(result, "endorsePost should return true for a valid post ID");
     }
 
-    /*******
-     * <p> Method: testEndorsePost_InvalidPostID() </p>
+    /**
+     * <p>Method: testEndorsePost_InvalidPostID()</p>
      *
-     * <p> Description: Validates that endorsePost returns false
-     * when given an invalid post ID. </p>
+     * <p>Description: Verifies that endorsePost returns false for an invalid post ID.</p>
      */
     @Test
     public void testEndorsePost_InvalidPostID() {
@@ -65,15 +71,13 @@ public class EndorsePostTest {
         assertFalse(result, "endorsePost should return false for an invalid post ID");
     }
 
-    /*******
-     * <p> Method: testEndorsePost_ZeroPostID() </p>
+    /**
+     * <p>Method: testEndorsePost_ZeroPostID()</p>
      *
-     * <p> Description: Validates that endorsePost returns false
-     * when given 0 as a post ID. </p>
+     * <p>Description: Verifies that endorsePost returns false for post ID 0.</p>
      */
     @Test
     public void testEndorsePost_ZeroPostID() {
         boolean result = db.endorsePost(0);
         assertFalse(result, "endorsePost should return false for post ID 0");
     }
-}
