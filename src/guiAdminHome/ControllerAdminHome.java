@@ -1,5 +1,8 @@
 package guiAdminHome;
 
+
+import entityClasses.Request;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -220,6 +223,80 @@ public class ControllerAdminHome {
         }
 	
 	}
+
+		/**********
+	 * <p> 
+	 * 
+	 * Title: viewRequest(Request)</p>
+	 * 
+	 * <p> Description: Displays request and shows options to respond to request with feedback </p>
+	 * 
+	 *@param Request
+	 */
+	protected static void viewOpenRequest(Request theRequest) {
+		Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		alert.setTitle("");
+		alert.setContentText(theRequest.toString());
+		
+		 ButtonType close = new ButtonType("Close This Request");
+		    
+		    alert.getButtonTypes().addAll(close);
+		    
+		    Optional<ButtonType> result = alert.showAndWait();
+
+		    if(result.isPresent()) {
+		    	if(result.get() == close) {
+		    		sendAction(theRequest);
+		    	}
+		    }
+		
+		
+		    
+		    
+	}
+
+	/**********
+	 * <p> 
+	 * 
+	 * Title:  sendAction (Request) Method. </p>
+	 * 
+	 * <p> Description: Closes request and sends documentation to database for staff review.
+	 * 
+	 * @param request to be acted upon
+	 */
+	
+	protected static void sendAction(Request theRequest) {
+		TextInputDialog action = new TextInputDialog();
+		
+		action.setTitle(String.format("Close Request: %s \n", theRequest));
+		action.setHeaderText("Add action documentation: ");
+		String feedback = action.showAndWait().orElse("");
+		
+	   Alert alert = new Alert(Alert.AlertType.NONE);
+	   alert.setTitle("Are you sure?");
+	   alert.setHeaderText("Are you sure you want to close this Request?");
+	   alert.setContentText(String.format("Close Request: %s/\nYOUR ACTION DOCUMENTATION: %s", theRequest.toString(), feedback));
+	   ButtonType close = new ButtonType("Close This Request");
+	   ButtonType nevermind = new ButtonType("Exit", ButtonBar.ButtonData.CANCEL_CLOSE);
+	   
+	    
+	    alert.getButtonTypes().addAll(close, nevermind);
+	    
+	    Optional<ButtonType> result = alert.showAndWait();
+	    
+	    if(result.isPresent() && result.get() == close) {
+	    
+		theDatabase.closeRequest(feedback, theRequest.getId());
+		ViewAdminHome.displayClosedRequests.setItems(theDatabase.getStaffRequests(true));
+		ViewAdminHome.displayOpenRequests.setItems(theDatabase.getStaffRequests(false));
+	    }
+	    
+		
+		
+	}
+	
+	
+	
 
 	
 	/**********
