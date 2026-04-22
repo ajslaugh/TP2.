@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javafx.collections.FXCollections;
+import entityClasses.Request;
 import entityClasses.User;
 import entityClasses.Post;
 import entityClasses.Reply;
@@ -77,6 +78,12 @@ public class Database {
 	private String thisUser;
 	private String thisRole;
 	private String thisThread;
+
+	//For requests
+	private String thisRequest;
+	private String thisStaffMember;
+	private int thisUrl;
+	private String thisTimeStamp;
 	
 	//For Reply
 	private String thisReply;
@@ -183,6 +190,22 @@ public class Database {
     		+ "thread VARCHAR(255) DEFAULT 'General')";
 	
     statement.execute(replyTable);
+
+	   //Alex
+    //Create the request table
+    String requestTable = "CREATE TABLE IF NOT EXISTS staffRequests("
+    		+ "id INT AUTO_INCREMENT PRIMARY KEY, "
+    		+ "request VARCHAR(255),"
+    		+ "staffMember VARCHAR(255),"
+    		+ "isClosed BOOL DEFAULT FALSE,"
+    		+ "url INT DEFAULT -1,"
+    		+ "timeStamp VARCHAR(255),"
+    		+ "action VARCHAR(500) DEFAULT ''"
+    		+ ")";
+    
+    
+    statement.execute(requestTable);
+		
 	
 	// Brenn thread table
     String threadTable = "CREATE TABLE IF NOT EXISTS threadTypes("
@@ -453,6 +476,146 @@ public class Database {
 		}
 		
 	}
+
+	/*******
+	 * <p> Method: getNumberOfAllOpenRequests()</p>
+	 * 
+	 * <p> Description: Returns an integer of number of all open requests for the admin. </p>
+	 * 
+	 * @return the number of all open requests.
+	 * 
+	 */
+	//ALEX get all open requests tp3
+	public int getNumberOfAllOpenRequests() {
+		String query = "SELECT COUNT(*) FROM staffRequests WHERE isClosed = FALSE";
+		try (PreparedStatement pstmt = connection.prepareStatement(query)){
+		        ResultSet rs = pstmt.executeQuery();
+		        
+		        if (rs.next()) {
+		            return rs.getInt(1);
+		        }
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		    }
+		    return 0; 
+		}
+
+
+	/*******
+	 * <p> Method: addRequest(Request) </p>
+	 * 
+	 * <p> Description: Add a request to the requestTable. </p>
+	 *  
+	 *  
+	 *  @oaram request
+	 *  
+	 *  
+	 * @return int to update request id. 
+	 * 
+	 */
+	
+	public int addRequest(Request request) {
+		String addRequest = "INSERT INTO staffRequests(request, staffMember, url, timeStamp)"
+				+ "VALUES (?, ?, ?, ?)";
+		try(PreparedStatement pstmt = connection.prepareStatement(addRequest)){
+			thisRequest = request.getContent();
+			pstmt.setString(1, thisRequest);
+			
+			thisStaffMember = request.getStaffMember();
+			pstmt.setString(2,  thisStaffMember);
+			
+			thisUrl = request.geturl();
+			pstmt.setInt(3, thisUrl);
+			
+			thisTimeStamp = request.getTimeStamp();
+			pstmt.setString(4, thisTimeStamp);
+			
+			
+			
+			pstmt.executeUpdate();
+			
+			try(ResultSet rs = pstmt.getGeneratedKeys()){
+				if(rs.next()) {
+					return rs.getInt(1); //request id
+				}
+			}
+		}
+			catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return 0;	
+		
+		}
+
+	/*******
+	 * <p> Method: closeRequest(String, int) </p>
+	 * 
+	 * <p> Description: Update a request in the request table to make isClosed true. </p>
+	 *  
+	 *  
+	 *  @param action: for the admin to add a note documenting changes request id: to locate request
+	 *  
+	 *  
+	 * @return boolean communicating request was/was not successfully closed
+	 * 
+	 */
+	
+	public boolean closeRequest(String action, int requestID) {
+		String query = "UPDATE staffRequests SET isClosed = ?, action = ? WHERE id = ?";
+		try(PreparedStatement pstmt = connection.prepareStatement(query)){
+			pstmt.setBoolean(1, true);
+			pstmt.setString(2,  action);
+			pstmt.setInt(3,  requestID);
+			return pstmt.executeUpdate() > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return false;
+			
+		}
+	}
+
+	
+	/*******
+	 * <p> Method: getStaffRequests(boolean isClosed) </p>
+	 * 
+	 * <p> Description: Retrieve all staff requests based on closed status. </p>
+	 *  
+	 *  
+	 *  @param boolean isClosed: communicates desired closed status.
+	 *  
+	 *  
+	 * @return ObservableList<Request> to utilize with listview. 
+	 * 
+	 */
+	
+
+		//Alex tp3
+		//get all open or closed requests 
+		public ObservableList<Request> getStaffRequests(boolean isClosed){
+			ObservableList<Request> requestDisplay = FXCollections.observableArrayList();
+			Request newRequest;
+			int i = 0;
+			String query = "SELECT staffMember, request, url, id, timeStamp FROM staffRequests WHERE isClosed = ?";
+			try(PreparedStatement pstmt = connection.prepareStatement(query)){
+				pstmt.setBoolean(1, isClosed);
+				ResultSet rs = pstmt.executeQuery();
+				while(rs.next()) {
+					newRequest = new Request(rs.getString("staffMember"), rs.getString("request"), rs.getInt("url"), rs.getInt("id"));
+					newRequest.setIndex(i);
+					requestDisplay.add(newRequest);
+					++i;
+				}
+			}
+			catch(SQLException e) {
+				e.printStackTrace();
+				return requestDisplay;
+			}
+			return requestDisplay;
+		}
+
+	
+
+
 	
 /*******
  *  <p> Method: List getUserList() </p>
