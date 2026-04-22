@@ -21,9 +21,13 @@ import java.util.List;
 import javafx.scene.control.ListCell;
 import database.Database;
 import entityClasses.User;
+import entityClasses.Request;
 import guiAdminHome.ViewAdminHome;
 import guiRole1.ControllerRole1Home;
+import javafx.scene.control.TextInputDialog;
 import guiUserUpdate.ViewUserUpdate;
+import javafx.scene.layout.VBox;
+import javafx.scene.control.Hyperlink;
 
 
 
@@ -66,8 +70,12 @@ public class ViewRole2Home {
 		
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator1 = new Line(20, 95, width-20, 95);
-	protected static Line line_Separator2 = new Line(20, 150, width-20, 150);
 
+	//GUI area 2: GUI area which allows staff member to select options for
+	//all posting and student managment, as well as making a viewing
+	//requests to admin
+
+	//left gui 2
 	protected static TextField text_PostContent = new TextField();
 	protected static Alert alertPosted = new Alert(Alert.AlertType.INFORMATION);
 	
@@ -75,6 +83,20 @@ public class ViewRole2Home {
 	protected static Button button_ThreadManagement = new Button("Thread Management");
 	protected static Button button_ViewStudents = new Button("List of Students");
 	protected static Button button_GradeSummary = new Button("Grade Summary");
+
+	//right gui 2
+	protected static Label label_myClosedRequests = new Label("My Closed Requests");
+	protected static ObservableList<Request> closedRequestsDisplay = FXCollections.observableArrayList();
+	protected static ListView<Request> displayClosedRequests = new ListView<>();
+	
+	protected static Label label_myOpenRequests = new Label("My Open Requests");
+	protected static ObservableList<Request> openRequestsDisplay = FXCollections.observableArrayList();
+	protected static ListView<Request> displayOpenRequests = new ListView<>();
+
+	protected static Button button_Request = new Button("Request Admin Assistance Here!");
+	protected static TextInputDialog dialogNewRequest = new TextInputDialog("");
+
+	
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	protected static Line line_Separator4 = new Line(20, 525, width-20,525);
@@ -187,6 +209,9 @@ public class ViewRole2Home {
 		button_ViewPosts.setOnAction((_) -> { 
 			ControllerRole2Home.performViewPosts();
 		});
+
+		//GUI area 2
+		//left gui 2
 		// button that takes us to the thread management page
 		setupButtonUI(button_ThreadManagement, "Dialog", 18, 200, Pos.CENTER, 50, 240);
 		button_ThreadManagement.setOnAction((_) -> {
@@ -202,6 +227,109 @@ public class ViewRole2Home {
 		button_GradeSummary.setOnAction((_) -> {
 		    ControllerRole2Home.performViewGradeSummary();
 		});
+
+		//right gui 2
+		dialogNewRequest.setTitle("Request Admin Assistance");
+		dialogNewRequest.setHeaderText("Please briefly describe the assistance you require from an administrator.");
+		TextField editor = dialogNewRequest.getEditor();
+		editor.setPrefColumnCount(50);
+		dialogNewRequest.getDialogPane().setMinWidth(500);
+
+		setupButtonUI(button_Request, "Dialog",  18, 100, Pos.CENTER, 360, 480);
+		button_Request.setOnAction((_) -> {ControllerRole2Home.performNewRequest(); });
+
+		setupLabelUI(label_myOpenRequests, "Arial", 18, width, Pos.CENTER, 112, 105);
+		openRequestsDisplay = theDatabase.getStaffRequests(false);
+		displayOpenRequests.setItems(openRequestsDisplay);
+		displayOpenRequests.setPrefSize(470, 150);
+		displayOpenRequests.setLayoutX(275);
+		displayOpenRequests.setLayoutY(135);
+		displayOpenRequests.setCellFactory(_ -> new ListCell<Request>() {
+			@Override
+			protected void updateItem(Request item, boolean empty) {
+				super.updateItem(item, empty);
+			
+				if(empty || item ==null) {
+					setText(null);}
+				else {
+					if(item.geturl() >= 0) {
+						Hyperlink link = new Hyperlink ("Go to Original Request");
+						
+						link.setOnAction(_ -> {
+							Request target = closedRequestsDisplay.get(item.geturl());
+							
+							displayClosedRequests.getSelectionModel().select(target);
+							displayClosedRequests.scrollTo(target);
+							
+						});
+						Label text = new Label(item.toString());
+						setWrapText(true);
+						VBox box = new VBox(5);
+						box.getChildren().addAll(text,link);
+						
+						setGraphic(box);
+						setText(null);
+						setAlignment(Pos.CENTER_LEFT);
+					}
+					else {
+					setText(item.toString());
+					setWrapText(true);
+					setAlignment(Pos.CENTER_LEFT);
+				}}}
+			});  
+		
+		
+		setupLabelUI(label_myClosedRequests, "Arial", 18, width, Pos.CENTER, 112, 292);
+		closedRequestsDisplay = theDatabase.getStaffRequests(true);
+		displayClosedRequests.setItems(closedRequestsDisplay);
+		displayClosedRequests.setPrefSize(470, 150);
+		displayClosedRequests.setLayoutX(275);
+		displayClosedRequests.setLayoutY(320);
+		displayClosedRequests.setCellFactory(_ -> new ListCell<Request>() {
+			@Override
+			protected void updateItem(Request item, boolean empty) {
+				super.updateItem(item, empty);
+			
+				if(empty || item ==null) {
+					setText(null);}
+				else {
+					if(item.geturl() >= 0) {
+						Hyperlink link = new Hyperlink ("Go to Original Request");
+						
+						link.setOnAction(_ -> {
+							Request target = closedRequestsDisplay.get(item.geturl());
+							
+							displayClosedRequests.getSelectionModel().select(target);
+							displayClosedRequests.scrollTo(target);
+							
+						});
+						Label text = new Label(item.toString());
+						setWrapText(true);
+						VBox box = new VBox(5);
+						box.getChildren().addAll(text,link);
+						
+						setGraphic(box);
+						setText(null);
+						setAlignment(Pos.CENTER_LEFT);
+					}
+					else {
+					setText(item.toString());
+					setWrapText(true);
+					setAlignment(Pos.CENTER_LEFT);}
+				}}
+			});  
+		
+		displayClosedRequests.setOnMouseClicked(event -> {
+		    if (event.getClickCount() == 2) {
+		        	Request someRequest = displayClosedRequests.getSelectionModel().getSelectedItem();
+		        
+		            ControllerRole2Home.resubmitRequest(someRequest);
+		            displayClosedRequests.setItems(theDatabase.getStaffRequests(true));
+		            displayOpenRequests.setItems(theDatabase.getStaffRequests(false));
+		  
+		        }});
+		
+		
 		
 		// GUI Area 3
         setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
@@ -214,7 +342,8 @@ public class ViewRole2Home {
 		
 		// Place all of the widget items into the Root Pane's list of children
         theRootPane.getChildren().addAll(
-        	    label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1, line_Separator2,
+        	    label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,  button_Request,label_myOpenRequests,
+        	    displayOpenRequests, label_myClosedRequests, displayClosedRequests,
         	    line_Separator4, button_Logout, button_Quit, button_ViewPosts, button_ThreadManagement, button_ViewStudents, button_GradeSummary);	
         }
 	
