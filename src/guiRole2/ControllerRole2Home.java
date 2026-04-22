@@ -5,6 +5,7 @@ import database.Database;
 import java.sql.SQLException;
 import java.util.Optional;
 import entityClasses.Reply;
+import entityClasses.Request;
 import database.Database;
 import entityClasses.User;
 import guiRole1.ViewRole1Home;
@@ -70,6 +71,7 @@ public class ControllerRole2Home {
 	private static String role = "";
 	private static int replyNumber;
 	private static String replyContent = "";
+	private static String requestContent = "";
 	protected static Database theDatabase = applicationMain.FoundationsMain.database;
 	
 	public ControllerRole2Home() {
@@ -106,6 +108,103 @@ public class ControllerRole2Home {
 			role = "STAFF";
 		}
 	}
+
+	/**********
+	 * <p> Method:  setRequestContent() </p>
+	 * 
+	 * <p> Description: Sets the request content of a new request </p>
+	 * 
+	 */
+	
+	protected static void setRequestContent() {
+		result = ViewRole2Home.dialogNewRequest.showAndWait();
+		if(result.isPresent()) {
+			requestContent = result.get();
+		}
+		else {
+			return;
+		}
+	}
+
+	/**********
+	 * <p> Method:  performNewRequest() </p>
+	 * 
+	 * <p> Description: Gives user option to create a new request and adds it to database. </p>
+	 * 
+	 */
+//ALEX TP3 add new request to the database
+	protected static void performNewRequest() {
+		setRequestContent();
+		
+		if(requestContent.isEmpty()) {
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setHeaderText("Problem with Request Submission");
+			alert.setContentText("You must right something within the text field in order to submit your request");
+			alert.showAndWait();
+			return;
+		}
+		
+		Request request = new Request(theDatabase.getCurrentUsername(), requestContent);
+		request.setId(theDatabase.addRequest(request));
+		ViewRole2Home.openRequestsDisplay.setAll(theDatabase.getStaffRequests(false));
+		
+		ViewRole2Home.alertPosted.setHeaderText("Request Successfully Submitted");
+		ViewRole2Home.alertPosted.setContentText("Your request will be reviewed by admin shortly.");
+		ViewRole2Home.alertPosted.showAndWait();
+		
+		
+	}
+
+	/**********
+	 * <p> Method:  resubmitRequest() </p>
+	 * 
+	 * <p> Description: Allows user to resubmit a closed request and adds it to database. </p>
+	 * 
+	 */
+
+	//Alex tp3
+	protected static void resubmitRequest(Request request) {
+		Alert alert = new Alert(Alert.AlertType.NONE);
+		alert.setHeaderText("Would you like to resubmit this request?");
+		alert.setTitle("Would you like to resubmit this request?");
+		alert.setContentText("Resubmitting this request will not delete the original. A link to the original request will be added");
+		
+		ButtonType resubmit = new ButtonType("Resubmit");
+		ButtonType cancel = new ButtonType("Close");
+		
+		alert.getButtonTypes().addAll(resubmit, cancel);
+		
+		Optional<ButtonType>result = alert.showAndWait();
+		
+		if(result.isPresent() && result.get() == resubmit) {
+			TextInputDialog addNote = new TextInputDialog();
+			addNote.setTitle("Add a note?");
+			addNote.setHeaderText("Would you like to add an additional note to your request resubmission?");
+			addNote.setContentText("Add any additional note you'd like to send to the admin here:");
+			String note = addNote.showAndWait().orElse("");
+			
+			
+			
+			Request newRequest = new Request(theDatabase.getCurrentUsername(), request.getContent() + "\n Resubmission Note: " + note, request.getIndex());
+			newRequest.setId(theDatabase.addRequest(newRequest));
+			ViewRole2Home.openRequestsDisplay.setAll(theDatabase.getStaffRequests(false));
+			ViewRole2Home.closedRequestsDisplay.setAll(theDatabase.getStaffRequests(true));
+		
+			
+			Alert alert2= new Alert(Alert.AlertType.INFORMATION);
+			alert2.setHeaderText("Your request has been resubmitted");
+			alert2.setTitle("You have resubmitted this post!");
+			alert2.setContentText("An admin will review your request shortly. Come back soon!");
+			
+			alert.showAndWait();
+			
+		}
+		
+	}
+
+	
+	
+	
 	
     /*****
      * Navigates to post display page
