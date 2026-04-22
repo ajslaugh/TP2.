@@ -2,8 +2,16 @@ package guiAdminHome;
 
 import java.util.ArrayList;
 
-import java.util.List;
 
+
+
+
+import java.util.List;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import entityClasses.User;
+import entityClasses.Request;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,7 +26,11 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import database.Database;
-import entityClasses.User;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.layout.VBox;
+
+
+
 import guiUserUpdate.ViewUserUpdate;
 
 /*******
@@ -89,6 +101,7 @@ public class ViewAdminHome {
 	// GUI Area 3: This is the first of two areas provided the admin with a set of action buttons
 	// that can be used to perform the tasks allocated to the admin role.  This part is about
 	// inviting potential new users to establish an account and what role that user will have.
+	//GUI 3 left
 	protected static Label label_Invitations = new Label("Send An Invitation");
 	protected static Label label_InvitationEmailAddress = new Label("Email Address");
 	protected static TextField text_InvitationEmailAddress = new TextField();
@@ -106,6 +119,19 @@ public class ViewAdminHome {
 	
 	// This is a separator and it is used to partition the GUI for various tasks
 	private static Line line_Separator3 = new Line(20, 255, width-20, 255);
+	
+	
+	
+	//GUI 3 tp3 requests Alex
+	protected static Label label_myClosedRequests = new Label("Closed Admin Requests");
+	protected static ObservableList<Request> closedRequestsDisplay = FXCollections.observableArrayList();
+	protected static ListView<Request> displayClosedRequests = new ListView<>();
+	
+	protected static Label label_myOpenRequests = new Label("Open Admin Requests");
+	protected static ObservableList<Request> openRequestsDisplay = FXCollections.observableArrayList();
+	protected static ListView<Request> displayOpenRequests = new ListView<>();
+	
+	
 	
 	// GUI Area 4: This is the second of the two action item areas.  This provides a set of other
 	// admin buttons to use to perform other roles.  Many of these buttons are just stubs and an
@@ -258,6 +284,9 @@ public class ViewAdminHome {
 
 		setupButtonUI(button_SendInvitation, "Dialog", 16, 150, Pos.CENTER, 630, 205);
 		button_SendInvitation.setOnAction((_) -> {ControllerAdminHome.performInvitation(); });
+		
+	
+		
 	
 		// GUI Area 4
 		setupButtonUI(button_ManageInvitations, "Dialog", 16, 250, Pos.CENTER, 20, 270);
@@ -277,6 +306,101 @@ public class ViewAdminHome {
 		setupButtonUI(button_AddRemoveRoles, "Dialog", 16, 250, Pos.CENTER, 20, 470);
 		button_AddRemoveRoles.setOnAction((_) -> {ControllerAdminHome.addRemoveRoles(); });
 		
+		//GUI area 4 right tp3 alex
+		setupLabelUI(label_myOpenRequests, "Arial", 18, width, Pos.CENTER, 30, 270);
+		openRequestsDisplay = theDatabase.getStaffRequests(false);
+		displayOpenRequests.setItems(openRequestsDisplay);
+		displayOpenRequests.setPrefSize(225, 200);
+		displayOpenRequests.setLayoutX(300);
+		displayOpenRequests.setLayoutY(300);
+		displayOpenRequests.setCellFactory(_ -> new ListCell<Request>() {
+			@Override
+			protected void updateItem(Request item, boolean empty) {
+				super.updateItem(item, empty);
+			
+				if(empty || item ==null) {
+					setText(null);}
+				else {
+					if(item.geturl() >= 0) {
+						Hyperlink link = new Hyperlink ("Go to Original Request");
+						
+						link.setOnAction(_ -> {
+							Request target = closedRequestsDisplay.get(item.geturl());
+							
+							displayClosedRequests.getSelectionModel().select(target);
+							displayClosedRequests.scrollTo(target);
+							
+						});
+						Label text = new Label(item.toString());
+						setWrapText(true);
+						VBox box = new VBox(5);
+						box.getChildren().addAll(text,link);
+						
+						setGraphic(box);
+						setText(null);
+						setAlignment(Pos.CENTER_LEFT);
+					}
+					else {
+					setText(item.toString());
+					setWrapText(true);
+					setGraphic(null);
+					setAlignment(Pos.CENTER_LEFT);
+				}}}});
+			
+		
+		
+		setupLabelUI(label_myClosedRequests, "Arial", 18, width, Pos.CENTER, 250, 270);
+		closedRequestsDisplay = theDatabase.getStaffRequests(true);
+		displayClosedRequests.setItems(closedRequestsDisplay);
+		displayClosedRequests.setPrefSize(225, 200);
+		displayClosedRequests.setLayoutX(550);
+		displayClosedRequests.setLayoutY(300);
+		displayClosedRequests.setCellFactory(_ -> new ListCell<Request>() {
+			@Override
+			protected void updateItem(Request item, boolean empty) {
+				super.updateItem(item, empty);
+			
+				if(empty || item ==null) {
+					setText(null);}
+				else {
+					if(item.geturl() >= 0) {
+						Hyperlink link = new Hyperlink ("Go to Original Request");
+						
+						link.setOnAction(_ -> {
+							Request target = closedRequestsDisplay.get(item.geturl());
+							
+							displayClosedRequests.getSelectionModel().select(target);
+							displayClosedRequests.scrollTo(target);
+							
+						});
+						Label text = new Label(item.toString());
+						setWrapText(true);
+						VBox box = new VBox(5);
+						box.getChildren().addAll(text,link);
+						
+						setGraphic(box);
+						setText(null);
+						setAlignment(Pos.CENTER_LEFT);
+					}
+					else {
+					setText(item.toString());
+					setWrapText(true);
+					setAlignment(Pos.CENTER_LEFT);
+				}}}
+			});  
+		
+		displayOpenRequests.setOnMouseClicked(event -> {
+		    if (event.getClickCount() == 2) {
+		        	Request someRequest = displayOpenRequests.getSelectionModel().getSelectedItem();
+		        
+		            ControllerAdminHome.viewOpenRequest(someRequest);
+		            displayClosedRequests.setItems(theDatabase.getStaffRequests(true));
+		            displayOpenRequests.setItems(theDatabase.getStaffRequests(false));
+		  
+		        }});
+	
+	
+		
 		// GUI Area 5
 		setupButtonUI(button_Logout, "Dialog", 18, 250, Pos.CENTER, 20, 540);
 		button_Logout.setOnAction((_) -> {ControllerAdminHome.performLogout(); });
@@ -294,6 +418,10 @@ public class ViewAdminHome {
     		label_Invitations, 
     		label_InvitationEmailAddress, text_InvitationEmailAddress,
     		combobox_SelectRole, button_SendInvitation, line_Separator3,
+    		label_myOpenRequests,
+    		displayOpenRequests,
+    		displayClosedRequests,
+    		label_myClosedRequests,
     		button_ManageInvitations,
     		button_SetOnetimePassword,
     		button_DeleteUser,
@@ -394,3 +522,4 @@ public class ViewAdminHome {
 		c.setLayoutY(y);
 	}
 }
+
